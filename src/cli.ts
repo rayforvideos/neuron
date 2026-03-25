@@ -1,5 +1,5 @@
 import { resolve, join, basename } from 'path';
-import { existsSync, mkdirSync, writeFileSync, readdirSync, readFileSync } from 'fs';
+import { existsSync, mkdirSync, writeFileSync, readdirSync, readFileSync, copyFileSync } from 'fs';
 import { compile } from './compiler';
 import { scaffold } from './scaffold';
 
@@ -66,10 +66,59 @@ export function run(args: string[]): void {
     writeFileSync(join(distDir, 'style.css'), result.css);
     writeFileSync(join(distDir, 'main.js'), result.js);
 
+    // Copy assets/ to dist/assets/
+    const assetsDir = join(projectDir, 'assets');
+    if (existsSync(assetsDir)) {
+      const assetFiles = readdirSync(assetsDir);
+      for (const file of assetFiles) {
+        copyFileSync(join(assetsDir, file), join(distDir, 'assets', file));
+      }
+    }
+
+    // Generate serve.js for SPA routing
+    const serveJs = `const http = require('http');
+const fs = require('fs');
+const path = require('path');
+
+const PORT = process.env.PORT || 3000;
+const DIST = __dirname;
+
+const MIME = {
+  '.html': 'text/html',
+  '.css': 'text/css',
+  '.js': 'application/javascript',
+  '.json': 'application/json',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.gif': 'image/gif',
+  '.svg': 'image/svg+xml',
+  '.ico': 'image/x-icon',
+};
+
+http.createServer(function(req, res) {
+  var url = req.url.split('?')[0];
+  var filePath = path.join(DIST, url);
+
+  if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
+    var ext = path.extname(filePath);
+    res.writeHead(200, { 'Content-Type': MIME[ext] || 'application/octet-stream' });
+    fs.createReadStream(filePath).pipe(res);
+  } else {
+    res.writeHead(200, { 'Content-Type': 'text/html' });
+    fs.createReadStream(path.join(DIST, 'index.html')).pipe(res);
+  }
+}).listen(PORT, function() {
+  console.log('Neuron app running at http://localhost:' + PORT);
+});
+`;
+    writeFileSync(join(distDir, 'serve.js'), serveJs);
+
     console.log(`Build complete → dist/`);
     console.log(`  index.html (${result.html.length} bytes)`);
     console.log(`  style.css  (${result.css.length} bytes)`);
     console.log(`  main.js    (${result.js.length} bytes)`);
+    console.log(`  serve.js   (SPA server)`);
+    console.log(`\nRun: node dist/serve.js`);
     return;
   }
 

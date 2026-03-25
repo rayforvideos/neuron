@@ -1,6 +1,6 @@
 {
   "name": "neuron-dsl",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "description": "AI-first declarative web app DSL compiler",
   "type": "module",
   "bin": {
