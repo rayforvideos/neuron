@@ -1,0 +1,141 @@
+import type { Theme } from '../theme';
+import { themeToCSS } from '../theme';
+
+const BASE_STYLES = `
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font-family);
+  font-size: var(--font-size-md);
+  color: var(--color-text);
+  background: var(--color-bg);
+  line-height: 1.6;
+}
+
+a { color: var(--color-primary); text-decoration: none; }
+
+.neuron-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-bottom: 1px solid var(--color-border);
+}
+.neuron-header h1 { font-size: var(--font-size-lg); }
+.neuron-header nav { display: flex; gap: var(--spacing-md); }
+.neuron-header nav a { font-size: var(--font-size-md); }
+
+.neuron-footer {
+  padding: var(--spacing-lg);
+  text-align: center;
+  border-top: 1px solid var(--color-border);
+  color: #888;
+}
+
+.neuron-hero {
+  text-align: center;
+  padding: var(--spacing-xl) var(--spacing-lg);
+}
+.neuron-hero h2 { font-size: var(--font-size-xl); margin-bottom: var(--spacing-sm); }
+.neuron-hero p { margin-bottom: var(--spacing-md); color: #666; }
+
+.neuron-btn {
+  display: inline-block;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+  font-size: var(--font-size-md);
+  text-align: center;
+  transition: background 0.2s, color 0.2s;
+}
+.neuron-btn--primary { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
+.neuron-btn--secondary { background: var(--color-secondary); color: #fff; border-color: var(--color-secondary); }
+.neuron-btn--danger { background: var(--color-danger); color: #fff; border-color: var(--color-danger); }
+.neuron-btn--ghost { background: transparent; color: var(--color-primary); border-color: transparent; }
+.neuron-btn--default { background: var(--color-bg); color: var(--color-text); }
+
+.neuron-product-grid {
+  display: grid;
+  gap: var(--spacing-md);
+  padding: var(--spacing-lg);
+}
+.neuron-product-grid article {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: var(--spacing-md);
+  box-shadow: var(--shadow);
+}
+
+.neuron-cart-list { padding: var(--spacing-lg); }
+.neuron-cart-list .cart-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: var(--spacing-sm) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.neuron-cart-summary {
+  padding: var(--spacing-lg);
+  text-align: right;
+  font-size: var(--font-size-lg);
+  font-weight: bold;
+}
+
+.neuron-form {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: var(--spacing-lg);
+}
+.neuron-form label {
+  display: block;
+  margin-bottom: var(--spacing-md);
+  font-size: var(--font-size-md);
+}
+.neuron-form input {
+  display: block;
+  width: 100%;
+  padding: var(--spacing-sm);
+  margin-top: var(--spacing-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  font-size: var(--font-size-md);
+}
+.neuron-form button[type="submit"] { width: 100%; margin-top: var(--spacing-md); }
+
+.neuron-cart-icon { position: relative; cursor: pointer; }
+.neuron-cart-icon .badge {
+  position: absolute; top: -4px; right: -4px;
+  background: var(--color-danger); color: #fff;
+  font-size: 12px; width: 18px; height: 18px;
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+}
+
+.neuron-search {
+  width: 100%; padding: var(--spacing-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  font-size: var(--font-size-md);
+}
+
+.neuron-modal {
+  display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5); z-index: 100;
+}
+.neuron-modal.active { display: flex; align-items: center; justify-content: center; }
+.neuron-modal-body {
+  background: var(--color-bg); padding: var(--spacing-lg);
+  border-radius: var(--radius); box-shadow: var(--shadow);
+  min-width: 320px;
+}
+
+.neuron-text--sm { font-size: var(--font-size-sm); }
+.neuron-text--md { font-size: var(--font-size-md); }
+.neuron-text--lg { font-size: var(--font-size-lg); }
+.neuron-text--xl { font-size: var(--font-size-xl); }
+
+.neuron-grid { display: grid; gap: var(--spacing-md); padding: var(--spacing-md); }
+.neuron-list { padding: var(--spacing-md); }
+.neuron-section { padding: var(--spacing-md); }
+`;
+
+export function generateCSS(theme: Theme): string {
+  return themeToCSS(theme) + '\n' + BASE_STYLES;
+}
