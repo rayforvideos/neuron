@@ -1,0 +1,4 @@
+API orders
+  POST /api/orders
+  body: cart
+  returns: Order

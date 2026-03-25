@@ -1,0 +1,4 @@
+API products
+  GET /api/products
+  on_load: true
+  returns: Product[]

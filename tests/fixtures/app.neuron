@@ -1,0 +1,12 @@
+STATE
+  cart: []
+  products: []
+  user: null
+
+---
+
+ACTION add-to-cart
+  append: product -> cart
+
+ACTION remove-from-cart
+  remove: cart where id matches

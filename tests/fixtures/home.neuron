@@ -1,0 +1,12 @@
+PAGE home "홈" /
+
+  header
+    title: "My Shop"
+
+  hero
+    title: "최고의 쇼핑"
+    subtitle: "지금 시작하세요"
+    cta: "쇼핑하기" -> /products
+
+  footer
+    text: "© 2026 My Shop"
