@@ -70,4 +70,94 @@ describe('generateJS', () => {
     const js = generateJS(ast);
     expect(js).toContain('_bindings');
   });
+
+  it('generates _initBindings with empty body when no data-bound components', () => {
+    const js = generateJS(ast);
+    expect(js).toContain('function _initBindings()');
+    expect(js).not.toContain('_renderProductGrid');
+  });
+
+  it('calls _initBindings in DOMContentLoaded', () => {
+    const js = generateJS(ast);
+    expect(js).toContain('_initBindings();');
+  });
+
+  describe('runtime renderers', () => {
+    const astWithComponents: NeuronAST = {
+      states: [{ type: 'STATE', fields: [
+        { name: 'cart', defaultValue: '[]' },
+        { name: 'products', defaultValue: '[]' },
+      ]}],
+      actions: [
+        { type: 'ACTION', name: 'add-to-cart', steps: [{ key: 'append', value: 'product -> cart' }] },
+        { type: 'ACTION', name: 'remove-from-cart', steps: [{ key: 'remove', value: 'cart where id matches' }] },
+      ],
+      apis: [
+        { type: 'API', name: 'products', method: 'GET', endpoint: '/api/products', options: { on_load: 'true', returns: 'Product[]' } },
+      ],
+      pages: [{
+        type: 'PAGE', name: 'home', title: '홈', route: '/',
+        components: [{
+          type: 'COMPONENT', componentType: 'product-grid',
+          properties: [
+            { key: 'data', value: 'products' },
+            { key: 'cols', value: '3' },
+            { key: 'on_click', value: 'add-to-cart' },
+          ],
+          children: [],
+        }],
+      }, {
+        type: 'PAGE', name: 'cart', title: '장바구니', route: '/cart',
+        components: [
+          {
+            type: 'COMPONENT', componentType: 'cart-list',
+            properties: [
+              { key: 'state', value: 'cart' },
+              { key: 'on_remove', value: 'remove-from-cart' },
+            ],
+            children: [],
+          },
+          {
+            type: 'COMPONENT', componentType: 'cart-summary',
+            properties: [{ key: 'state', value: 'cart' }],
+            children: [],
+          },
+          {
+            type: 'COMPONENT', componentType: 'cart-icon',
+            properties: [{ key: 'state', value: 'cart' }],
+            children: [],
+          },
+        ],
+      }],
+    };
+
+    it('generates all four renderer functions', () => {
+      const js = generateJS(astWithComponents);
+      expect(js).toContain('function _renderProductGrid(items)');
+      expect(js).toContain('function _renderCartList(items)');
+      expect(js).toContain('function _renderCartSummary(items)');
+      expect(js).toContain('function _renderCartIcon(items)');
+    });
+
+    it('generates _initBindings with correct registrations', () => {
+      const js = generateJS(astWithComponents);
+      expect(js).toContain("_bindings['products'].push(_renderProductGrid)");
+      expect(js).toContain("_bindings['cart'].push(_renderCartList)");
+      expect(js).toContain("_bindings['cart'].push(_renderCartSummary)");
+      expect(js).toContain("_bindings['cart'].push(_renderCartIcon)");
+    });
+
+    it('product-grid renderer references data-source and data-action', () => {
+      const js = generateJS(astWithComponents);
+      expect(js).toContain('data-source');
+      expect(js).toContain('data-product-id');
+      expect(js).toContain('neuron-product-card');
+    });
+
+    it('cart-list renderer handles empty state', () => {
+      const js = generateJS(astWithComponents);
+      expect(js).toContain('neuron-empty');
+      expect(js).toContain('data-remove-id');
+    });
+  });
 });

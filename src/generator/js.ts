@@ -1,6 +1,6 @@
 // src/generator/js.ts
 
-import type { NeuronAST, ActionNode, ApiNode } from '../ast';
+import type { NeuronAST, ActionNode, ApiNode, ComponentNode } from '../ast';
 
 export function generateJS(ast: NeuronAST): string {
   const lines: string[] = [];
@@ -26,7 +26,14 @@ export function generateJS(ast: NeuronAST): string {
   // 7. Auto-load
   lines.push(generateAutoLoad(ast));
 
-  // 8. DOMContentLoaded init
+  // 8. Runtime renderers for data-bound components
+  const renderers = generateRuntimeRenderers(ast);
+  if (renderers) lines.push(renderers);
+
+  // 9. Init bindings
+  lines.push(generateInitBindings(ast));
+
+  // 10. DOMContentLoaded init
   lines.push(generateInit());
 
   return lines.join('\n\n');
@@ -212,8 +219,145 @@ function generateAutoLoad(ast: NeuronAST): string {
   return `function _autoLoad() {\n${calls.join('\n')}\n}`;
 }
 
+/** Recursively collect component types used across all pages */
+function collectComponentTypes(ast: NeuronAST): Set<string> {
+  const types = new Set<string>();
+  function walk(components: ComponentNode[]) {
+    for (const c of components) {
+      types.add(c.componentType);
+      walk(c.children);
+    }
+  }
+  for (const page of ast.pages) {
+    walk(page.components);
+  }
+  return types;
+}
+
+function generateRuntimeRenderers(ast: NeuronAST): string {
+  const usedTypes = collectComponentTypes(ast);
+  const parts: string[] = [];
+
+  if (usedTypes.has('product-grid')) {
+    parts.push(`function _renderProductGrid(items) {
+  document.querySelectorAll('.neuron-product-grid').forEach(function(grid) {
+    var cols = grid.getAttribute('data-cols') || '3';
+    var action = grid.getAttribute('data-action');
+    grid.style.gridTemplateColumns = 'repeat(' + cols + ', 1fr)';
+    grid.innerHTML = items.map(function(p) {
+      return '<article class="neuron-product-card">' +
+        '<img class="neuron-product-card__img" src="' + p.image + '" alt="' + p.name + '">' +
+        '<div class="neuron-product-card__body">' +
+          '<p class="neuron-product-card__category">' + p.category + '</p>' +
+          '<h3 class="neuron-product-card__name">' + p.name + '</h3>' +
+          '<p class="neuron-product-card__price">' + p.price.toLocaleString('ko-KR') + '원</p>' +
+          (action ? '<button class="neuron-btn neuron-btn--primary neuron-product-card__btn" data-product-id="' + p.id + '">담기</button>' : '') +
+        '</div></article>';
+    }).join('');
+    if (action) {
+      grid.querySelectorAll('[data-product-id]').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          var id = parseInt(this.getAttribute('data-product-id'));
+          var source = grid.getAttribute('data-source');
+          var product = _state[source].find(function(p) { return p.id === id; });
+          if (product && _actions[action]) _actions[action](product);
+        });
+      });
+    }
+  });
+}`);
+  }
+
+  if (usedTypes.has('cart-list')) {
+    parts.push(`function _renderCartList(items) {
+  document.querySelectorAll('.neuron-cart-list').forEach(function(list) {
+    var removeAction = list.getAttribute('data-remove-action');
+    if (items.length === 0) {
+      list.innerHTML = '<div class="neuron-empty">장바구니가 비어있습니다</div>';
+      return;
+    }
+    list.innerHTML = items.map(function(item) {
+      return '<div class="neuron-cart-item">' +
+        '<img class="neuron-cart-item__img" src="' + item.image + '" alt="' + item.name + '">' +
+        '<div class="neuron-cart-item__info">' +
+          '<h4>' + item.name + '</h4>' +
+          '<p>' + item.category + '</p>' +
+        '</div>' +
+        '<p class="neuron-cart-item__price">' + item.price.toLocaleString('ko-KR') + '원</p>' +
+        (removeAction ? '<button class="neuron-btn neuron-btn--danger neuron-cart-item__remove" data-remove-id="' + item.id + '">삭제</button>' : '') +
+      '</div>';
+    }).join('');
+    if (removeAction) {
+      list.querySelectorAll('[data-remove-id]').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          var id = parseInt(this.getAttribute('data-remove-id'));
+          if (_actions[removeAction]) _actions[removeAction](id);
+        });
+      });
+    }
+  });
+}`);
+  }
+
+  if (usedTypes.has('cart-summary')) {
+    parts.push(`function _renderCartSummary(items) {
+  document.querySelectorAll('.neuron-cart-summary').forEach(function(el) {
+    var total = items.reduce(function(sum, item) { return sum + item.price; }, 0);
+    el.innerHTML = '<div class="neuron-cart-summary__content">' +
+      '<div class="neuron-cart-summary__row"><span>상품 수</span><span>' + items.length + '개</span></div>' +
+      '<div class="neuron-cart-summary__total"><span>총 합계</span><span>' + total.toLocaleString('ko-KR') + '원</span></div>' +
+    '</div>';
+  });
+}`);
+  }
+
+  if (usedTypes.has('cart-icon')) {
+    parts.push(`function _renderCartIcon(items) {
+  document.querySelectorAll('.neuron-cart-icon .badge').forEach(function(badge) {
+    badge.textContent = items.length;
+  });
+}`);
+  }
+
+  return parts.join('\n\n');
+}
+
+function generateInitBindings(ast: NeuronAST): string {
+  const registrations: string[] = [];
+  const seen = new Set<string>();
+
+  for (const page of ast.pages) {
+    for (const comp of page.components) {
+      if (comp.componentType === 'product-grid' && !seen.has('_renderProductGrid')) {
+        const dataField = comp.properties.find(p => p.key === 'data')?.value || 'products';
+        seen.add('_renderProductGrid');
+        registrations.push(`  _bindings['${dataField}'].push(_renderProductGrid);`);
+      }
+      if (comp.componentType === 'cart-list' && !seen.has('_renderCartList')) {
+        const stateField = comp.properties.find(p => p.key === 'state')?.value || 'cart';
+        seen.add('_renderCartList');
+        registrations.push(`  _bindings['${stateField}'].push(_renderCartList);`);
+      }
+      if (comp.componentType === 'cart-summary' && !seen.has('_renderCartSummary')) {
+        const stateField = comp.properties.find(p => p.key === 'state')?.value || 'cart';
+        seen.add('_renderCartSummary');
+        registrations.push(`  _bindings['${stateField}'].push(_renderCartSummary);`);
+      }
+      if (comp.componentType === 'cart-icon' && !seen.has('_renderCartIcon')) {
+        const stateField = comp.properties.find(p => p.key === 'state')?.value || 'cart';
+        seen.add('_renderCartIcon');
+        registrations.push(`  _bindings['${stateField}'].push(_renderCartIcon);`);
+      }
+    }
+  }
+
+  return `function _initBindings() {\n${registrations.join('\n')}\n}`;
+}
+
 function generateInit(): string {
   return `document.addEventListener('DOMContentLoaded', function() {
+  _initBindings();
   _initRouter();
   _autoLoad();
 });`;

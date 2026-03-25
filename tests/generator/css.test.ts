@@ -17,4 +17,35 @@ describe('generateCSS', () => {
     expect(css).toContain('.neuron-footer');
     expect(css).toContain('box-sizing: border-box');
   });
+
+  it('includes product card styles', () => {
+    const css = generateCSS(DEFAULT_THEME);
+    expect(css).toContain('.neuron-product-card');
+    expect(css).toContain('.neuron-product-card__img');
+    expect(css).toContain('.neuron-product-card__body');
+    expect(css).toContain('.neuron-product-card__name');
+    expect(css).toContain('.neuron-product-card__price');
+    expect(css).toContain('.neuron-product-card__category');
+  });
+
+  it('includes cart item styles', () => {
+    const css = generateCSS(DEFAULT_THEME);
+    expect(css).toContain('.neuron-cart-item');
+    expect(css).toContain('.neuron-cart-item__img');
+    expect(css).toContain('.neuron-cart-item__info');
+    expect(css).toContain('.neuron-cart-item__price');
+    expect(css).toContain('.neuron-cart-item__remove');
+  });
+
+  it('includes cart summary content styles', () => {
+    const css = generateCSS(DEFAULT_THEME);
+    expect(css).toContain('.neuron-cart-summary__content');
+    expect(css).toContain('.neuron-cart-summary__row');
+    expect(css).toContain('.neuron-cart-summary__total');
+  });
+
+  it('includes empty state style', () => {
+    const css = generateCSS(DEFAULT_THEME);
+    expect(css).toContain('.neuron-empty');
+  });
 });

@@ -134,6 +134,97 @@ a { color: var(--color-primary); text-decoration: none; }
 .neuron-grid { display: grid; gap: var(--spacing-md); padding: var(--spacing-md); }
 .neuron-list { padding: var(--spacing-md); }
 .neuron-section { padding: var(--spacing-md); }
+
+.neuron-product-card {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--color-bg);
+  box-shadow: var(--shadow);
+  transition: transform 0.2s;
+}
+.neuron-product-card:hover { transform: translateY(-4px); }
+.neuron-product-card__img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  background: #f5f5f7;
+}
+.neuron-product-card__body { padding: var(--spacing-md); }
+.neuron-product-card__category {
+  font-size: var(--font-size-sm);
+  color: var(--color-secondary);
+  margin-bottom: 4px;
+}
+.neuron-product-card__name {
+  font-size: var(--font-size-md);
+  color: var(--color-text);
+  margin-bottom: var(--spacing-sm);
+}
+.neuron-product-card__price {
+  font-size: calc(var(--font-size-md) + 2px);
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: var(--spacing-sm);
+}
+.neuron-product-card__btn { width: 100%; }
+
+.neuron-cart-item {
+  display: flex;
+  align-items: center;
+  padding: var(--spacing-md) 0;
+  border-bottom: 1px solid var(--color-border);
+  gap: var(--spacing-md);
+}
+.neuron-cart-item__img {
+  width: 80px; height: 80px;
+  object-fit: cover;
+  border-radius: var(--radius);
+  background: #f5f5f7;
+}
+.neuron-cart-item__info { flex: 1; }
+.neuron-cart-item__info h4 { color: var(--color-text); margin-bottom: 4px; }
+.neuron-cart-item__info p { color: var(--color-secondary); font-size: var(--font-size-sm); }
+.neuron-cart-item__price {
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0 var(--spacing-md);
+}
+.neuron-cart-item__remove {
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: var(--font-size-sm);
+}
+
+.neuron-cart-summary__content {
+  padding: var(--spacing-lg);
+  background: #f5f5f7;
+  border-radius: var(--radius);
+  margin: var(--spacing-md) 0;
+}
+.neuron-cart-summary__row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-sm);
+  color: var(--color-secondary);
+}
+.neuron-cart-summary__total {
+  display: flex;
+  justify-content: space-between;
+  padding-top: var(--spacing-sm);
+  border-top: 1px solid var(--color-border);
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-text);
+}
+.neuron-cart-summary__total span:last-child { color: var(--color-primary); }
+
+.neuron-empty {
+  text-align: center;
+  padding: var(--spacing-xl);
+  color: var(--color-secondary);
+  font-size: var(--font-size-lg);
+}
 `;
 
 export function generateCSS(theme: Theme): string {
