@@ -1,4 +1,5 @@
 {
   "name": "{{PROJECT_NAME}}",
-  "version": "1.0.0"
+  "version": "1.0.0",
+  "reference": "node_modules/neuron-dsl/REFERENCE.md"
 }
