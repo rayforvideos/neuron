@@ -8,6 +8,12 @@ AI 에이전트를 위한 선언적 웹 앱 DSL 컴파일러.
 
 `.neuron` 파일을 작성하면 SPA(Single Page Application)로 컴파일합니다. 프레임워크 없이 순수 HTML/CSS/JS를 생성합니다.
 
+## 설치
+
+```bash
+npm install -g neuron-dsl
+```
+
 ## Quick Start
 
 ```bash
@@ -17,6 +23,13 @@ neuron new my-shop
 # 빌드
 cd my-shop
 neuron build
+```
+
+`dist/` 폴더의 결과물을 아무 정적 서버에 배포하면 됩니다:
+
+```bash
+# 로컬에서 바로 확인 (npx 활용)
+npx serve dist
 ```
 
 `dist/` 폴더에 배포 가능한 SPA가 생성됩니다:

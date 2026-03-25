@@ -1,16 +1,18 @@
 {
-  "name": "neuron",
-  "version": "1.0.0",
-  "description": "",
+  "name": "neuron-dsl",
+  "version": "1.0.1",
+  "description": "AI-first declarative web app DSL compiler",
   "type": "module",
   "bin": {
-    "neuron": "./dist/index.js"
+    "neuron": "dist/index.js"
   },
-  "directories": {
-    "doc": "docs"
-  },
+  "files": [
+    "dist",
+    "templates"
+  ],
   "scripts": {
     "build": "tsup src/index.ts --format esm --dts",
+    "prepublishOnly": "npm run build",
     "test": "vitest run",
     "test:watch": "vitest"
   },
@@ -18,9 +20,15 @@
     "type": "git",
     "url": "git@github-second:rayforvideos/neuron.git"
   },
-  "keywords": [],
+  "keywords": [
+    "neuron",
+    "dsl",
+    "compiler",
+    "spa",
+    "ai"
+  ],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "devDependencies": {
     "@types/node": "^25.5.0",
     "tsup": "^8.5.1",
