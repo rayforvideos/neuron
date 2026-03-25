@@ -1,0 +1,11 @@
+PAGE home "홈" /
+
+  header
+    title: "{{PROJECT_NAME}}"
+
+  hero
+    title: "Welcome"
+    subtitle: "Get started with Neuron"
+
+  footer
+    text: "Built with Neuron"

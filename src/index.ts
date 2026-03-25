@@ -1,2 +1,3 @@
 #!/usr/bin/env node
-console.log('neuron');
+import { run } from './cli';
+run(process.argv.slice(2));

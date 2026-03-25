@@ -1,0 +1,7 @@
+STATE
+  items: []
+
+---
+
+ACTION add-item
+  append: item -> items
