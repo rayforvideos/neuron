@@ -381,6 +381,60 @@ ACTION search
   });
 });
 
+describe('end-to-end: custom components and theme presets', () => {
+  it('compiles app with custom components and dark preset', () => {
+    writeFileSync(join(TMP, 'app.neuron'), `STATE
+  items: []`);
+
+    writeFileSync(join(TMP, 'neuron.json'), JSON.stringify({ name: 'Custom App', theme: 'dark' }));
+
+    mkdirSync(join(TMP, 'pages'), { recursive: true });
+    writeFileSync(join(TMP, 'pages', 'home.neuron'), `PAGE home "Home" /
+
+  header
+    title: "Custom App"
+
+  rating
+    label: "Score"
+    value: "4.5"
+
+  badge
+    text: "NEW"
+
+  footer
+    text: "Built with Neuron"`);
+
+    mkdirSync(join(TMP, 'components'), { recursive: true });
+    writeFileSync(join(TMP, 'components', 'rating.html'), `<div class="rating"><span>{{label}}</span> ★ {{value}}</div>`);
+    writeFileSync(join(TMP, 'components', 'rating.css'), `.rating { display: flex; gap: 8px; }\n.rating span { color: #f59e0b; }`);
+    writeFileSync(join(TMP, 'components', 'badge.html'), `<span class="badge badge--{{variant}}">{{text}}</span>`);
+
+    const result = compile({
+      appFile: join(TMP, 'app.neuron'),
+      pageFiles: [join(TMP, 'pages', 'home.neuron')],
+      apiFiles: [],
+      themeFile: null,
+      appTitle: 'Custom App',
+    });
+
+    expect(result.errors).toEqual([]);
+
+    expect(result.html).toContain('Score');
+    expect(result.html).toContain('4.5');
+    expect(result.html).toContain('rating');
+    expect(result.html).toContain('NEW');
+    expect(result.html).toContain('badge');
+
+    expect(result.css).toContain('.rating');
+    expect(result.css).toContain('#f59e0b');
+
+    expect(result.css).toContain('#121212');
+    expect(result.css).toContain('#00D4AA');
+
+    expect(result.html).not.toContain('{{variant}}');
+  });
+});
+
 describe('end-to-end: build-time validation', () => {
   it('reports validation errors for invalid references', () => {
     writeFileSync(join(TMP, 'app.neuron'), `STATE persist: todos, wishlist
