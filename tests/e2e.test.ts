@@ -150,3 +150,158 @@ ACTION search-products
     expect(result.js).toContain("page: 'checkout'");
   });
 });
+
+describe('end-to-end: todo app with new features', () => {
+  it('compiles a todo app with dynamic routing, show_if, form validation, and new actions', () => {
+    // app.neuron
+    writeFileSync(join(TMP, 'app.neuron'), `STATE
+  todos: []
+  count: 0
+  darkMode: false
+  filter: "all"
+
+---
+
+ACTION toggle-dark
+  toggle: darkMode
+
+ACTION increase
+  increment: count
+
+ACTION decrease
+  decrement: count
+
+ACTION clear-filter
+  set: filter -> "all"
+
+ACTION go-home
+  navigate: /
+
+ACTION add-todo
+  use: logic/todos.addTodo
+
+ACTION toggle-todo
+  use: logic/todos.toggleTodo`);
+
+    // pages/
+    mkdirSync(join(TMP, 'pages'), { recursive: true });
+    writeFileSync(join(TMP, 'pages', 'home.neuron'), `PAGE home "Home" /
+
+  header
+    title: "Todo App"
+    links: [Todos>/todos, About>/about]
+
+  hero
+    title: "Welcome"
+    subtitle: "A simple todo app"
+    cta: "Get Started" -> /todos
+
+  text
+    content: "No todos yet"
+    show_if: !todos
+
+  footer
+    text: "Built with Neuron"`);
+
+    writeFileSync(join(TMP, 'pages', 'todos.neuron'), `PAGE todos "Todos" /todos
+
+  header
+    title: "Todos"
+
+  form
+    field_title: "What needs to be done?"
+      type: text
+      required: true
+    submit: "Add" -> add-todo
+
+  button "Toggle Dark Mode" -> toggle-dark
+    show_if: darkMode
+
+  footer
+    text: "Built with Neuron"`);
+
+    writeFileSync(join(TMP, 'pages', 'detail.neuron'), `PAGE detail "Detail" /todo/:id
+
+  header
+    title: "Todo Detail"
+
+  text
+    content: "Todo detail page"
+
+  button "Back" -> /todos`);
+
+    // logic/
+    mkdirSync(join(TMP, 'logic'), { recursive: true });
+    writeFileSync(join(TMP, 'logic', 'todos.js'), `export function addTodo(state, payload) {
+  return {
+    todos: [...state.todos, { id: Date.now(), text: payload.field_title, done: false }],
+    count: state.count + 1
+  };
+}
+
+export function toggleTodo(state, id) {
+  return {
+    todos: state.todos.map(function(t) {
+      return t.id === id ? Object.assign({}, t, { done: !t.done }) : t;
+    })
+  };
+}`);
+
+    const result = compile({
+      appFile: join(TMP, 'app.neuron'),
+      pageFiles: [
+        join(TMP, 'pages', 'home.neuron'),
+        join(TMP, 'pages', 'todos.neuron'),
+        join(TMP, 'pages', 'detail.neuron'),
+      ],
+      apiFiles: [],
+      themeFile: null,
+      appTitle: 'Todo App',
+    });
+
+    expect(result.errors).toEqual([]);
+
+    // HTML checks
+    expect(result.html).toContain('<title>Todo App</title>');
+    expect(result.html).toContain('data-page="home"');
+    expect(result.html).toContain('data-page="todos"');
+    expect(result.html).toContain('data-page="detail"');
+    // show_if wrapper
+    expect(result.html).toContain('data-show-if');
+    // Form validation
+    expect(result.html).toContain('type="text"');
+    expect(result.html).toContain('required');
+
+    // JS checks — new action patterns
+    expect(result.js).toContain("'toggle-dark'");
+    expect(result.js).toContain('!_state.darkMode');
+    expect(result.js).toContain("'increase'");
+    expect(result.js).toContain('_state.count + 1');
+    expect(result.js).toContain("'decrease'");
+    expect(result.js).toContain('_state.count - 1');
+    expect(result.js).toContain("'clear-filter'");
+    expect(result.js).toContain("_setState('filter'");
+    expect(result.js).toContain("'go-home'");
+    expect(result.js).toContain("_navigate('/')");
+
+    // JS checks — use: external logic
+    expect(result.js).toContain('_logic_todos');
+    expect(result.js).toContain('addTodo');
+    expect(result.js).toContain('toggleTodo');
+
+    // JS checks — dynamic routing
+    expect(result.js).toContain("params: ['id']");
+    expect(result.js).toContain('_matchRoute');
+    expect(result.js).toContain('_params');
+
+    // JS checks — show_if
+    expect(result.js).toContain('_initShowIf');
+    expect(result.js).toContain('display');
+
+    // JS checks — form validation
+    expect(result.js).toContain('checkValidity');
+
+    // CSS checks — form validation
+    expect(result.css).toContain('input:invalid');
+  });
+});
