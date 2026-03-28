@@ -50,6 +50,13 @@ dist/
 - **조건부 렌더링**: `show_if: state` / `show_if: !state`
 - **폼 검증**: `type`, `required`, `min`, `max` 속성
 
+### 런타임 품질 (v2.1)
+
+- **페이지 트랜지션**: theme.json에서 `fade`/`slide` 설정
+- **상태 영속성**: `STATE persist: field1, field2` — localStorage 자동 저장
+- **반응형 레이아웃**: 모바일 자동 대응 (768px 이하)
+- **로딩/에러 UI**: API 호출 시 자동 스피너 + 에러 표시
+
 자세한 문법은 [REFERENCE.md](REFERENCE.md)를 참고하세요.
 
 ## DSL 문법

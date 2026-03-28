@@ -54,6 +54,17 @@ STATE
 
 Types are inferred from default values: `[]` = array, `null` = nullable, `""` = string, `0` = number, `false` = boolean.
 
+### State Persistence
+
+```
+STATE persist: cart, user
+  cart: []
+  user: null
+  temp: ""
+```
+
+Fields listed after `persist:` are automatically saved to localStorage and restored on page load. Key format: `neuron:{fieldName}`.
+
 ## Keyword 2: ACTION (app.neuron)
 
 Defines state mutations. Must come after `STATE`, separated by `---`.
@@ -440,6 +451,44 @@ Reference from DSL: `use: logic/todos.addTodo`
 ```
 
 Components use `variant` property to reference theme colors: `primary`, `secondary`, `danger`, `ghost`, `default`.
+
+### Transitions
+
+Add `transition` to theme.json:
+
+```json
+{
+  "transition": "fade"
+}
+```
+
+Values: `"fade"` (opacity), `"slide"` (translateX + opacity), `"none"` (default, instant)
+
+## Loading & Error States
+
+API calls automatically track loading and error states:
+
+- `_state._loading.apiName` — `true` while fetching, `false` when done
+- `_state._error.apiName` — error message string or `null`
+
+Data components (`product-grid`, `cart-list`) automatically display:
+- Spinner while loading
+- Error message on failure
+
+Use `show_if` for custom loading/error UI:
+```
+text
+  content: "Loading..."
+  show_if: _loading
+```
+
+## Responsive Layout
+
+All generated apps include automatic responsive CSS. At screen widths below 768px:
+- Grids collapse to single column
+- Header navigation wraps
+- Hero sections reduce padding
+- Forms expand to full width
 
 ## Build Output
 
