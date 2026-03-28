@@ -107,6 +107,33 @@ ACTION add-todo
     rmSync(tmpDir, { recursive: true, force: true });
   });
 
+  it('loads theme preset from neuron.json', () => {
+    const tmpDir = join(__dirname, '.tmp-compiler-preset');
+    mkdirSync(tmpDir, { recursive: true });
+    mkdirSync(join(tmpDir, 'pages'), { recursive: true });
+
+    writeFileSync(join(tmpDir, 'app.neuron'), `STATE
+  items: []`);
+    writeFileSync(join(tmpDir, 'pages', 'home.neuron'), `PAGE home "Home" /
+
+  text
+    content: "Hello"`);
+    writeFileSync(join(tmpDir, 'neuron.json'), JSON.stringify({ name: 'Test', theme: 'dark' }));
+
+    const result = compile({
+      appFile: join(tmpDir, 'app.neuron'),
+      pageFiles: [join(tmpDir, 'pages', 'home.neuron')],
+      apiFiles: [],
+      themeFile: null,
+      appTitle: 'Test',
+    });
+
+    expect(result.errors).toEqual([]);
+    expect(result.css).toContain('#121212');
+
+    rmSync(tmpDir, { recursive: true, force: true });
+  });
+
   it('reports validation errors for undefined state references', () => {
     const tmpDir = join(__dirname, '.tmp-compiler-validate');
     mkdirSync(tmpDir, { recursive: true });

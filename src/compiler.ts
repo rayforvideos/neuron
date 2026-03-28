@@ -61,12 +61,20 @@ export function compile(input: CompileInput): CompileResult {
     }
   }
 
-  // Load theme
-  const theme = loadTheme(input.themeFile);
-
   // Scan logic/ directory
   const logicFiles: Record<string, string> = {};
   const projectDir = dirname(input.appFile);
+
+  // Load theme (preset or file)
+  let presetName: string | undefined;
+  const neuronJsonPath = join(projectDir, 'neuron.json');
+  if (existsSync(neuronJsonPath)) {
+    try {
+      const config = JSON.parse(readFileSync(neuronJsonPath, 'utf-8'));
+      if (config.theme) presetName = config.theme;
+    } catch {}
+  }
+  const theme = loadTheme(input.themeFile, presetName);
   const logicDir = join(projectDir, 'logic');
   if (existsSync(logicDir)) {
     const jsFiles = readdirSync(logicDir).filter(f => f.endsWith('.js'));
