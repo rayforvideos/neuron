@@ -2,7 +2,7 @@
 
 import type { NeuronAST, ActionNode, ApiNode, ComponentNode } from '../ast';
 
-export function generateJS(ast: NeuronAST, logicFiles?: Record<string, string>): string {
+export function generateJS(ast: NeuronAST, logicFiles?: Record<string, string>, transition?: string): string {
   const lines: string[] = [];
 
   // 0. Bundle external logic files
@@ -20,7 +20,7 @@ export function generateJS(ast: NeuronAST, logicFiles?: Record<string, string>):
   lines.push(generateSetState(persistFields));
 
   // 4. Router
-  lines.push(generateRouter(ast));
+  lines.push(generateRouter(ast, transition || 'none'));
 
   // 5. Action handlers
   lines.push(generateActions(ast));
@@ -123,7 +123,7 @@ function _setState(key, val) {
 }`;
 }
 
-function generateRouter(ast: NeuronAST): string {
+function generateRouter(ast: NeuronAST, transition: string): string {
   const routeEntries = ast.pages.map(p => {
     const regexStr = p.route
       .replace(/:[a-zA-Z_]\w*/g, '([^/]+)')
@@ -154,7 +154,27 @@ function generateRouter(ast: NeuronAST): string {
   _render(route);
 }`;
 
-  const render = `function _render(route) {
+  const render = transition !== 'none'
+    ? `function _render(route) {
+  var pageName = _matchRoute(route);
+  document.querySelectorAll('[data-page]').forEach(function(el) {
+    if (el.getAttribute('data-page') === pageName) {
+      el.style.display = '';
+      requestAnimationFrame(function() {
+        el.classList.add('neuron-page-active');
+      });
+    } else {
+      el.classList.remove('neuron-page-active');
+      el.addEventListener('transitionend', function handler() {
+        if (!el.classList.contains('neuron-page-active')) {
+          el.style.display = 'none';
+        }
+        el.removeEventListener('transitionend', handler);
+      });
+    }
+  });
+}`
+    : `function _render(route) {
   var pageName = _matchRoute(route);
   document.querySelectorAll('[data-page]').forEach(function(el) {
     el.style.display = el.getAttribute('data-page') === pageName ? '' : 'none';

@@ -235,6 +235,40 @@ input:valid:not(:placeholder-shown) {
 }
 `;
 
+const FADE_TRANSITION = `
+[data-page] {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  position: absolute;
+  width: 100%;
+}
+[data-page].neuron-page-active {
+  opacity: 1;
+  position: relative;
+}
+`;
+
+const SLIDE_TRANSITION = `
+[data-page] {
+  transform: translateX(20px);
+  opacity: 0;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  position: absolute;
+  width: 100%;
+}
+[data-page].neuron-page-active {
+  transform: translateX(0);
+  opacity: 1;
+  position: relative;
+}
+`;
+
 export function generateCSS(theme: Theme): string {
-  return themeToCSS(theme) + '\n' + BASE_STYLES;
+  let css = themeToCSS(theme) + '\n' + BASE_STYLES;
+  if (theme.transition === 'fade') {
+    css += '\n' + FADE_TRANSITION;
+  } else if (theme.transition === 'slide') {
+    css += '\n' + SLIDE_TRANSITION;
+  }
+  return css;
 }

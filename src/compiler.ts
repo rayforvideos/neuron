@@ -90,7 +90,7 @@ export function compile(input: CompileInput): CompileResult {
   // Generate outputs
   const html = generateHTML(ast.pages, input.appTitle);
   const css = generateCSS(theme);
-  const js = generateJS(ast, logicFiles);
+  const js = generateJS(ast, logicFiles, theme.transition || 'none');
 
   return { html, css, js, errors };
 }

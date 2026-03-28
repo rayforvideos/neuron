@@ -312,6 +312,35 @@ describe('generateJS', () => {
     });
   });
 
+  describe('page transitions', () => {
+    it('generates class-based render when transition mode is set', () => {
+      const transAst: NeuronAST = {
+        states: [{ type: 'STATE', fields: [], persist: [] }],
+        actions: [],
+        apis: [],
+        pages: [
+          { type: 'PAGE', name: 'home', title: 'Home', route: '/', params: [], components: [] },
+        ],
+      };
+      const js = generateJS(transAst, undefined, 'fade');
+      expect(js).toContain('neuron-page-active');
+      expect(js).toContain('requestAnimationFrame');
+    });
+
+    it('generates display-based render when transition is none', () => {
+      const transAst: NeuronAST = {
+        states: [{ type: 'STATE', fields: [], persist: [] }],
+        actions: [],
+        apis: [],
+        pages: [
+          { type: 'PAGE', name: 'home', title: 'Home', route: '/', params: [], components: [] },
+        ],
+      };
+      const js = generateJS(transAst, undefined, 'none');
+      expect(js).not.toContain('neuron-page-active');
+    });
+  });
+
   describe('runtime renderers', () => {
     const astWithComponents: NeuronAST = {
       states: [{ type: 'STATE', fields: [
