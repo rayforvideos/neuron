@@ -11,6 +11,7 @@ describe('generateJS', () => {
         { name: 'products', defaultValue: '[]' },
         { name: 'user', defaultValue: 'null' },
       ],
+      persist: [],
     }],
     actions: [
       { type: 'ACTION', name: 'add-to-cart', steps: [{ key: 'append', value: 'product -> cart' }] },
@@ -85,7 +86,7 @@ describe('generateJS', () => {
   describe('new action patterns', () => {
     it('generates set action', () => {
       const setAst: NeuronAST = {
-        states: [{ type: 'STATE', fields: [{ name: 'query', defaultValue: '""' }] }],
+        states: [{ type: 'STATE', fields: [{ name: 'query', defaultValue: '""' }], persist: [] }],
         actions: [{ type: 'ACTION', name: 'clear-search', steps: [{ key: 'set', value: 'query -> ""' }] }],
         apis: [],
         pages: [{ type: 'PAGE', name: 'home', title: 'Home', route: '/', params: [], components: [] }],
@@ -97,7 +98,7 @@ describe('generateJS', () => {
 
     it('generates set action with null value', () => {
       const setAst: NeuronAST = {
-        states: [{ type: 'STATE', fields: [{ name: 'user', defaultValue: 'null' }] }],
+        states: [{ type: 'STATE', fields: [{ name: 'user', defaultValue: 'null' }], persist: [] }],
         actions: [{ type: 'ACTION', name: 'logout', steps: [{ key: 'set', value: 'user -> null' }] }],
         apis: [],
         pages: [{ type: 'PAGE', name: 'home', title: 'Home', route: '/', params: [], components: [] }],
@@ -108,7 +109,7 @@ describe('generateJS', () => {
 
     it('generates toggle action', () => {
       const toggleAst: NeuronAST = {
-        states: [{ type: 'STATE', fields: [{ name: 'darkMode', defaultValue: 'false' }] }],
+        states: [{ type: 'STATE', fields: [{ name: 'darkMode', defaultValue: 'false' }], persist: [] }],
         actions: [{ type: 'ACTION', name: 'toggle-dark', steps: [{ key: 'toggle', value: 'darkMode' }] }],
         apis: [],
         pages: [{ type: 'PAGE', name: 'home', title: 'Home', route: '/', params: [], components: [] }],
@@ -120,7 +121,7 @@ describe('generateJS', () => {
 
     it('generates increment action', () => {
       const incAst: NeuronAST = {
-        states: [{ type: 'STATE', fields: [{ name: 'count', defaultValue: '0' }] }],
+        states: [{ type: 'STATE', fields: [{ name: 'count', defaultValue: '0' }], persist: [] }],
         actions: [{ type: 'ACTION', name: 'increase', steps: [{ key: 'increment', value: 'count' }] }],
         apis: [],
         pages: [{ type: 'PAGE', name: 'home', title: 'Home', route: '/', params: [], components: [] }],
@@ -132,7 +133,7 @@ describe('generateJS', () => {
 
     it('generates decrement action', () => {
       const decAst: NeuronAST = {
-        states: [{ type: 'STATE', fields: [{ name: 'count', defaultValue: '0' }] }],
+        states: [{ type: 'STATE', fields: [{ name: 'count', defaultValue: '0' }], persist: [] }],
         actions: [{ type: 'ACTION', name: 'decrease', steps: [{ key: 'decrement', value: 'count' }] }],
         apis: [],
         pages: [{ type: 'PAGE', name: 'home', title: 'Home', route: '/', params: [], components: [] }],
@@ -144,7 +145,7 @@ describe('generateJS', () => {
 
     it('generates navigate action', () => {
       const navAst: NeuronAST = {
-        states: [{ type: 'STATE', fields: [] }],
+        states: [{ type: 'STATE', fields: [], persist: [] }],
         actions: [{ type: 'ACTION', name: 'go-home', steps: [{ key: 'navigate', value: '/' }] }],
         apis: [],
         pages: [{ type: 'PAGE', name: 'home', title: 'Home', route: '/', params: [], components: [] }],
@@ -158,7 +159,7 @@ describe('generateJS', () => {
   describe('dynamic routing', () => {
     it('generates pattern-based router for dynamic routes', () => {
       const dynAst: NeuronAST = {
-        states: [{ type: 'STATE', fields: [] }],
+        states: [{ type: 'STATE', fields: [], persist: [] }],
         actions: [],
         apis: [],
         pages: [
@@ -174,7 +175,7 @@ describe('generateJS', () => {
 
     it('generates static-only router when no dynamic routes', () => {
       const staticAst: NeuronAST = {
-        states: [{ type: 'STATE', fields: [] }],
+        states: [{ type: 'STATE', fields: [], persist: [] }],
         actions: [],
         apis: [],
         pages: [
@@ -188,7 +189,7 @@ describe('generateJS', () => {
 
     it('generates multi-param route matching', () => {
       const multiAst: NeuronAST = {
-        states: [{ type: 'STATE', fields: [] }],
+        states: [{ type: 'STATE', fields: [], persist: [] }],
         actions: [],
         apis: [],
         pages: [
@@ -203,7 +204,7 @@ describe('generateJS', () => {
   describe('show_if rendering', () => {
     it('generates show_if bindings for components', () => {
       const showIfAst: NeuronAST = {
-        states: [{ type: 'STATE', fields: [{ name: 'user', defaultValue: 'null' }] }],
+        states: [{ type: 'STATE', fields: [{ name: 'user', defaultValue: 'null' }], persist: [] }],
         actions: [],
         apis: [],
         pages: [{
@@ -233,7 +234,7 @@ describe('generateJS', () => {
   describe('use: external JS delegation', () => {
     it('generates action that calls external logic function', () => {
       const useAst: NeuronAST = {
-        states: [{ type: 'STATE', fields: [{ name: 'todos', defaultValue: '[]' }] }],
+        states: [{ type: 'STATE', fields: [{ name: 'todos', defaultValue: '[]' }], persist: [] }],
         actions: [{ type: 'ACTION', name: 'add-todo', steps: [{ key: 'use', value: 'logic/todos.addTodo' }] }],
         apis: [],
         pages: [{ type: 'PAGE', name: 'home', title: 'Home', route: '/', params: [], components: [] }],
@@ -252,7 +253,7 @@ describe('generateJS', () => {
 
     it('generates JS without logic section when no use: actions', () => {
       const basicAst: NeuronAST = {
-        states: [{ type: 'STATE', fields: [{ name: 'count', defaultValue: '0' }] }],
+        states: [{ type: 'STATE', fields: [{ name: 'count', defaultValue: '0' }], persist: [] }],
         actions: [{ type: 'ACTION', name: 'inc', steps: [{ key: 'increment', value: 'count' }] }],
         apis: [],
         pages: [{ type: 'PAGE', name: 'home', title: 'Home', route: '/', params: [], components: [] }],
@@ -267,7 +268,7 @@ describe('generateJS', () => {
       states: [{ type: 'STATE', fields: [
         { name: 'cart', defaultValue: '[]' },
         { name: 'products', defaultValue: '[]' },
-      ]}],
+      ], persist: [] }],
       actions: [
         { type: 'ACTION', name: 'add-to-cart', steps: [{ key: 'append', value: 'product -> cart' }] },
         { type: 'ACTION', name: 'remove-from-cart', steps: [{ key: 'remove', value: 'cart where id matches' }] },
@@ -362,7 +363,7 @@ describe('generateJS', () => {
 
     it('renders without field mappings using generic fallback', () => {
       const minimalAst: NeuronAST = {
-        states: [{ type: 'STATE', fields: [{ name: 'items', defaultValue: '[]' }] }],
+        states: [{ type: 'STATE', fields: [{ name: 'items', defaultValue: '[]' }], persist: [] }],
         actions: [],
         apis: [],
         pages: [{

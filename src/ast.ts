@@ -8,6 +8,7 @@ export interface StateField {
 export interface StateNode {
   type: 'STATE';
   fields: StateField[];
+  persist: string[];
 }
 
 export interface ActionStep {

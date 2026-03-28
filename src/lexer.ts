@@ -37,9 +37,13 @@ export function tokenize(input: string): Token[] {
       continue;
     }
 
-    // STATE keyword
-    if (trimmed === 'STATE') {
+    // STATE keyword (with optional persist)
+    if (trimmed === 'STATE' || trimmed.startsWith('STATE persist:')) {
       tokens.push({ type: 'KEYWORD', value: 'STATE', indent, line: lineNum });
+      if (trimmed.startsWith('STATE persist:')) {
+        const persistValue = trimmed.slice('STATE persist:'.length).trim();
+        tokens.push({ type: 'PROPERTY', key: 'persist', value: persistValue, indent: indent + 2, line: lineNum });
+      }
       continue;
     }
 

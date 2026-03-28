@@ -178,6 +178,24 @@ describe('parse', () => {
     });
   });
 
+  describe('state persistence', () => {
+    it('parses persist field list', () => {
+      const ast = parse(`STATE persist: cart, user
+  cart: []
+  user: null
+  temp: ""
+`);
+      expect(ast.states[0].persist).toEqual(['cart', 'user']);
+    });
+
+    it('defaults to empty persist when not specified', () => {
+      const ast = parse(`STATE
+  count: 0
+`);
+      expect(ast.states[0].persist).toEqual([]);
+    });
+  });
+
   it('parses full app.neuron with mixed sections', () => {
     const input = `STATE\n  cart: []\n  products: []\n\n---\n\nACTION add-to-cart\n  append: product -> cart\n\nACTION remove-from-cart\n  remove: cart where id matches`;
     const ast = parse(input);

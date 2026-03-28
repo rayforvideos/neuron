@@ -66,14 +66,18 @@ export function parse(source: string): NeuronAST {
 
 function parseState(tokens: Token[], start: number): [StateNode, number] {
   const baseIndent = tokens[start].indent;
-  const node: StateNode = { type: 'STATE', fields: [] };
+  const node: StateNode = { type: 'STATE', fields: [], persist: [] };
   let i = start + 1;
 
   while (i < tokens.length) {
     const t = tokens[i];
     if (t.type === 'KEYWORD' || t.type === 'SEPARATOR' || t.indent <= baseIndent) break;
     if (t.type === 'PROPERTY') {
-      node.fields.push({ name: t.key, defaultValue: t.value });
+      if (t.key === 'persist') {
+        node.persist = t.value.split(',').map(s => s.trim()).filter(Boolean);
+      } else {
+        node.fields.push({ name: t.key, defaultValue: t.value });
+      }
     }
     i++;
   }
