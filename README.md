@@ -62,6 +62,11 @@ dist/
 - **`neuron dev`**: 파일 감시 + 자동 리빌드 + 라이브 리로드 dev server
 - **빌드 검증**: 미정의 state/action/API 참조, 중복 라우트 자동 검출
 
+### 생태계 (v2.3)
+
+- **커스텀 컴포넌트**: `components/` 디렉토리에 HTML 템플릿으로 새 컴포넌트 추가
+- **테마 프리셋**: `default`, `dark`, `minimal`, `vibrant` — neuron.json에서 한 줄로 설정
+
 자세한 문법은 [REFERENCE.md](REFERENCE.md)를 참고하세요.
 
 ## DSL 문법

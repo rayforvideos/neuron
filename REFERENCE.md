@@ -526,6 +526,54 @@ Watches `.neuron`, `logic/*.js`, `themes/theme.json`, and `assets/` for changes.
 
 Validation errors appear in build output but do not block code generation.
 
+## Custom Components
+
+Create HTML templates in `components/` directory:
+
+```html
+<!-- components/rating.html -->
+<div class="rating">
+  <span>{{label}}</span>
+  <span>★ {{value}}</span>
+</div>
+```
+
+Optional CSS in matching file:
+```css
+/* components/rating.css */
+.rating { display: flex; gap: 8px; }
+```
+
+Use in DSL like any built-in component:
+```
+rating
+  label: "Score"
+  value: "4.5"
+```
+
+- File name = component name (`rating.html` → `rating`)
+- `{{prop}}` placeholders are replaced by component properties
+- Cannot conflict with built-in component names
+
+## Theme Presets
+
+Set in `neuron.json`:
+```json
+{
+  "name": "My App",
+  "theme": "dark"
+}
+```
+
+Available presets: `default`, `dark`, `minimal`, `vibrant`
+
+Priority: `themes/theme.json` (file) > `neuron.json` theme field (preset) > default
+
+Scaffold with preset:
+```bash
+neuron new my-app --theme dark
+```
+
 ## Key Constraints
 
 1. **API name = STATE field name** for auto-binding (e.g., `API products` binds to `STATE.products`)
