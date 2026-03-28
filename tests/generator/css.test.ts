@@ -74,4 +74,10 @@ describe('generateCSS', () => {
     const css = generateCSS(noneTheme);
     expect(css).not.toContain('neuron-page-active');
   });
+
+  it('includes responsive media queries', () => {
+    const css = generateCSS(DEFAULT_THEME);
+    expect(css).toContain('@media (max-width: 768px)');
+    expect(css).toContain('grid-template-columns: 1fr');
+  });
 });

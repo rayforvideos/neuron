@@ -233,6 +233,48 @@ input:invalid:not(:placeholder-shown) {
 input:valid:not(:placeholder-shown) {
   border-color: var(--color-primary);
 }
+
+@media (max-width: 768px) {
+  .neuron-product-grid,
+  .neuron-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .neuron-header {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+  .neuron-header nav {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .neuron-hero {
+    padding: var(--spacing-lg) var(--spacing-md);
+  }
+  .neuron-hero h2 {
+    font-size: var(--font-size-lg);
+  }
+
+  .neuron-form {
+    padding: var(--spacing-md);
+    max-width: 100%;
+  }
+
+  .neuron-cart-item {
+    flex-wrap: wrap;
+  }
+  .neuron-cart-item__img {
+    width: 60px;
+    height: 60px;
+  }
+
+  .neuron-modal-body {
+    min-width: auto;
+    margin: var(--spacing-md);
+    max-width: calc(100vw - 48px);
+  }
+}
 `;
 
 const FADE_TRANSITION = `
