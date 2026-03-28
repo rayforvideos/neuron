@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { mkdirSync, existsSync, rmSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { compile } from '../src/compiler';
+import { scaffold } from '../src/scaffold';
 
 const TMP = join(__dirname, '.tmp-cli-test');
 
@@ -43,5 +44,13 @@ describe('neuron build (via compiler)', () => {
     expect(result.css).toContain('--color-primary');
     expect(result.js).toContain('_state');
     expect(result.errors).toEqual([]);
+  });
+});
+
+describe('neuron new (via scaffold)', () => {
+  it('neuron new creates logic/ directory', () => {
+    scaffold('my-project', TMP);
+    const logicDir = join(TMP, 'my-project', 'logic');
+    expect(existsSync(logicDir)).toBe(true);
   });
 });

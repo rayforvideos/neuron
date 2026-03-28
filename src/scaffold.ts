@@ -12,6 +12,7 @@ export function scaffold(projectName: string, targetDir: string): void {
     join(projectDir, 'components'),
     join(projectDir, 'themes'),
     join(projectDir, 'assets'),
+    join(projectDir, 'logic'),
   ];
   for (const d of dirs) mkdirSync(d, { recursive: true });
 
