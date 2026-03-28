@@ -11,6 +11,16 @@ export const KNOWN_COMPONENTS: string[] = [
   'button', 'form', 'search', 'tabs', 'modal',
 ];
 
+const customTemplates = new Map<string, string>();
+
+export function registerCustomComponent(name: string, template: string): void {
+  customTemplates.set(name, template);
+}
+
+export function clearCustomComponents(): void {
+  customTemplates.clear();
+}
+
 /* ── helpers ─────────────────────────────────────────────────────── */
 
 function getProp(node: ComponentNode, key: string): string | undefined {
@@ -191,10 +201,24 @@ const renderers: Record<string, (node: ComponentNode) => string> = {
 
 /* ── public API ──────────────────────────────────────────────────── */
 
+function renderCustom(template: string, node: ComponentNode): string {
+  let html = template;
+  for (const prop of node.properties) {
+    const val = unquote(prop.value);
+    html = html.replace(new RegExp(`\\{\\{${prop.key}\\}\\}`, 'g'), val);
+  }
+  html = html.replace(/\{\{\w+\}\}/g, '');
+  return html;
+}
+
 export function renderComponent(node: ComponentNode): string {
   const renderer = renderers[node.componentType];
-  if (!renderer) {
-    return `<!-- unknown component: ${node.componentType} -->`;
+  if (renderer) {
+    return renderer(node);
   }
-  return renderer(node);
+  const template = customTemplates.get(node.componentType);
+  if (template) {
+    return renderCustom(template, node);
+  }
+  return `<!-- unknown component: ${node.componentType} -->`;
 }

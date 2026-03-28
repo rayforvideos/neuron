@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { renderComponent, KNOWN_COMPONENTS } from '../../src/components/registry';
+import { renderComponent, KNOWN_COMPONENTS, registerCustomComponent, clearCustomComponents } from '../../src/components/registry';
 import type { ComponentNode } from '../../src/ast';
 
 function makeComponent(type: string, props: Record<string, string> = {}, opts: Partial<ComponentNode> = {}): ComponentNode {
@@ -133,5 +133,50 @@ describe('renderComponent', () => {
     const html = renderComponent(makeComponent('section', {}, { children: [child] }));
     expect(html).toContain('neuron-section');
     expect(html).toContain('Hello');
+  });
+
+  describe('custom components', () => {
+    it('renders custom component from template', () => {
+      registerCustomComponent('rating', '<div class="rating">{{label}} ★ {{value}}</div>');
+      const node: ComponentNode = {
+        type: 'COMPONENT',
+        componentType: 'rating',
+        properties: [
+          { key: 'label', value: '"Score"' },
+          { key: 'value', value: '"4.5"' },
+        ],
+        children: [],
+      };
+      const html = renderComponent(node);
+      expect(html).toContain('Score');
+      expect(html).toContain('4.5');
+      expect(html).toContain('rating');
+      clearCustomComponents();
+    });
+
+    it('removes unused placeholders', () => {
+      registerCustomComponent('badge', '<span class="badge">{{text}} {{extra}}</span>');
+      const node: ComponentNode = {
+        type: 'COMPONENT',
+        componentType: 'badge',
+        properties: [{ key: 'text', value: '"NEW"' }],
+        children: [],
+      };
+      const html = renderComponent(node);
+      expect(html).toContain('NEW');
+      expect(html).not.toContain('{{extra}}');
+      clearCustomComponents();
+    });
+
+    it('falls back to unknown comment for unregistered component', () => {
+      const node: ComponentNode = {
+        type: 'COMPONENT',
+        componentType: 'nonexistent',
+        properties: [],
+        children: [],
+      };
+      const html = renderComponent(node);
+      expect(html).toContain('<!-- unknown component');
+    });
   });
 });

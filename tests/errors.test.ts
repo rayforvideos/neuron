@@ -81,4 +81,10 @@ describe('formatError', () => {
     expect(formatError(err)).toContain('wishlist');
     expect(formatError(err)).toContain('STATE');
   });
+
+  it('formats component_name_conflict error', () => {
+    const err = new NeuronError('component_name_conflict', 'header', {});
+    expect(formatError(err)).toContain('header');
+    expect(formatError(err)).toContain('충돌');
+  });
 });

@@ -13,7 +13,8 @@ export type ErrorCode =
   | 'invalid_route_param'
   | 'duplicate_route'
   | 'duplicate_page'
-  | 'undefined_persist_field';
+  | 'undefined_persist_field'
+  | 'component_name_conflict';
 
 export class NeuronError extends Error {
   code: ErrorCode;
@@ -59,6 +60,8 @@ const messages: Record<ErrorCode, (target: string, meta: Record<string, unknown>
     `[NEURON ERROR] 중복 페이지 이름: "${target}"\n→ 각 PAGE는 고유한 이름을 가져야 합니다`,
   undefined_persist_field: (target) =>
     `[NEURON ERROR] persist 필드 "${target}"가 STATE에 정의되지 않음\n→ STATE 섹션에 "${target}" 를 추가하세요`,
+  component_name_conflict: (target) =>
+    `[NEURON ERROR] 커스텀 컴포넌트 "${target}"가 빌트인 컴포넌트와 이름이 충돌합니다\n→ 다른 이름을 사용하세요`,
 };
 
 export function formatError(err: NeuronError): string {
