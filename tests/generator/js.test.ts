@@ -367,6 +367,37 @@ describe('generateJS', () => {
     });
   });
 
+  describe('API loading/error wrapping', () => {
+    it('wraps autoLoad with loading/error state updates', () => {
+      const apiAst: NeuronAST = {
+        states: [{ type: 'STATE', fields: [{ name: 'products', defaultValue: '[]' }], persist: [] }],
+        actions: [],
+        apis: [{ type: 'API', name: 'products', method: 'GET', endpoint: '/api/products', options: { on_load: 'true' } }],
+        pages: [{ type: 'PAGE', name: 'home', title: 'Home', route: '/', params: [], components: [] }],
+      };
+      const js = generateJS(apiAst);
+      expect(js).toContain("products: true");
+      expect(js).toContain("products: false");
+      expect(js).toContain("_error");
+      expect(js).toContain("err.message");
+    });
+
+    it('wraps call action with loading/error state updates', () => {
+      const callAst: NeuronAST = {
+        states: [{ type: 'STATE', fields: [{ name: 'cart', defaultValue: '[]' }], persist: [] }],
+        actions: [{ type: 'ACTION', name: 'pay', steps: [
+          { key: 'call', value: 'orders' },
+          { key: 'on_success', value: '-> /complete' },
+        ]}],
+        apis: [{ type: 'API', name: 'orders', method: 'POST', endpoint: '/api/orders', options: { body: 'cart' } }],
+        pages: [{ type: 'PAGE', name: 'home', title: 'Home', route: '/', params: [], components: [] }],
+      };
+      const js = generateJS(callAst);
+      expect(js).toContain("orders: true");
+      expect(js).toContain("orders: false");
+    });
+  });
+
   describe('runtime renderers', () => {
     const astWithComponents: NeuronAST = {
       states: [{ type: 'STATE', fields: [

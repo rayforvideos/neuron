@@ -287,20 +287,22 @@ function generateActionBody(action: ActionNode, apiMap: Map<string, ApiNode>): s
       successCode = `_setState('${targetState}', data);`;
     }
 
-    let errorCode = '';
-    if (onError) {
-      errorCode = `\n      } catch(err) {\n        console.error('${onError}', err);`;
-    } else {
-      errorCode = `\n      } catch(err) {\n        console.error(err);`;
-    }
+    const errorLabel = onError ? `'${onError}', ` : '';
 
     return `async function() {
+      _setState('_loading', Object.assign({}, _state._loading, { ${apiName}: true }));
       try {
-        const res = await fetch(${urlExpr}, {
+        var res = await fetch(${urlExpr}, {
           ${fetchOptions.join(',\n          ')}
         });
-        const data = await res.json();
-        ${successCode}${errorCode}
+        var data = await res.json();
+        ${successCode}
+        _setState('_loading', Object.assign({}, _state._loading, { ${apiName}: false }));
+        _setState('_error', Object.assign({}, _state._error, { ${apiName}: null }));
+      } catch(err) {
+        console.error(${errorLabel}err);
+        _setState('_loading', Object.assign({}, _state._loading, { ${apiName}: false }));
+        _setState('_error', Object.assign({}, _state._error, { ${apiName}: err.message }));
       }
     }`;
   }
@@ -393,10 +395,18 @@ function generateAutoLoad(ast: NeuronAST): string {
   if (autoApis.length === 0) return 'function _autoLoad() {}';
 
   const calls = autoApis.map(api => {
-    return `  fetch('${api.endpoint}')
-    .then(res => res.json())
-    .then(data => _setState('${api.name}', data))
-    .catch(err => console.error('Failed to load ${api.name}', err));`;
+    return `  _setState('_loading', Object.assign({}, _state._loading, { ${api.name}: true }));
+  fetch('${api.endpoint}')
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      _setState('${api.name}', data);
+      _setState('_loading', Object.assign({}, _state._loading, { ${api.name}: false }));
+      _setState('_error', Object.assign({}, _state._error, { ${api.name}: null }));
+    })
+    .catch(function(err) {
+      _setState('_loading', Object.assign({}, _state._loading, { ${api.name}: false }));
+      _setState('_error', Object.assign({}, _state._error, { ${api.name}: err.message }));
+    });`;
   });
 
   return `function _autoLoad() {\n${calls.join('\n')}\n}`;
