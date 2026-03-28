@@ -263,6 +263,55 @@ describe('generateJS', () => {
     });
   });
 
+  describe('state persistence', () => {
+    it('generates _persistFields and _initPersist when persist is specified', () => {
+      const persistAst: NeuronAST = {
+        states: [{ type: 'STATE', fields: [
+          { name: 'cart', defaultValue: '[]' },
+          { name: 'user', defaultValue: 'null' },
+          { name: 'temp', defaultValue: '""' },
+        ], persist: ['cart', 'user'] }],
+        actions: [],
+        apis: [],
+        pages: [{ type: 'PAGE', name: 'home', title: 'Home', route: '/', params: [], components: [] }],
+      };
+      const js = generateJS(persistAst);
+      expect(js).toContain("_persistFields");
+      expect(js).toContain("'cart'");
+      expect(js).toContain("'user'");
+      expect(js).toContain("_initPersist");
+      expect(js).toContain("localStorage");
+      expect(js).toContain("neuron:");
+    });
+
+    it('does not generate persist code when no persist fields', () => {
+      const noPersistAst: NeuronAST = {
+        states: [{ type: 'STATE', fields: [
+          { name: 'count', defaultValue: '0' },
+        ], persist: [] }],
+        actions: [],
+        apis: [],
+        pages: [{ type: 'PAGE', name: 'home', title: 'Home', route: '/', params: [], components: [] }],
+      };
+      const js = generateJS(noPersistAst);
+      expect(js).not.toContain('_persistFields');
+      expect(js).not.toContain('localStorage');
+    });
+
+    it('_setState includes localStorage save for persist fields', () => {
+      const persistAst: NeuronAST = {
+        states: [{ type: 'STATE', fields: [
+          { name: 'cart', defaultValue: '[]' },
+        ], persist: ['cart'] }],
+        actions: [],
+        apis: [],
+        pages: [{ type: 'PAGE', name: 'home', title: 'Home', route: '/', params: [], components: [] }],
+      };
+      const js = generateJS(persistAst);
+      expect(js).toContain('localStorage.setItem');
+    });
+  });
+
   describe('runtime renderers', () => {
     const astWithComponents: NeuronAST = {
       states: [{ type: 'STATE', fields: [

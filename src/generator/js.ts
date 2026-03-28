@@ -16,7 +16,8 @@ export function generateJS(ast: NeuronAST, logicFiles?: Record<string, string>):
   lines.push(generateBindings(ast));
 
   // 3. _setState function
-  lines.push(generateSetState());
+  const persistFields = ast.states.flatMap(s => s.persist || []);
+  lines.push(generateSetState(persistFields));
 
   // 4. Router
   lines.push(generateRouter(ast));
@@ -30,6 +31,10 @@ export function generateJS(ast: NeuronAST, logicFiles?: Record<string, string>):
   // 6.5 Show-if bindings
   const showIfCode = generateShowIfBindings(ast);
   if (showIfCode) lines.push(showIfCode);
+
+  // 6.6 Persist
+  const persistCode = generatePersist(persistFields);
+  if (persistCode) lines.push(persistCode);
 
   // 7. Auto-load
   lines.push(generateAutoLoad(ast));
@@ -100,10 +105,21 @@ function generateBindings(ast: NeuronAST): string {
   return `const _bindings = {\n${entries.join(',\n')}\n};`;
 }
 
-function generateSetState(): string {
-  return `function _setState(key, val) {
+function generateSetState(persistFields: string[]): string {
+  if (persistFields.length === 0) {
+    return `function _setState(key, val) {
   _state[key] = val;
   (_bindings[key] || []).forEach(fn => fn(val));
+}`;
+  }
+  return `var _persistFields = [${persistFields.map(f => `'${f}'`).join(', ')}];
+
+function _setState(key, val) {
+  _state[key] = val;
+  (_bindings[key] || []).forEach(fn => fn(val));
+  if (_persistFields.indexOf(key) !== -1) {
+    try { localStorage.setItem('neuron:' + key, JSON.stringify(val)); } catch(e) {}
+  }
 }`;
 }
 
@@ -676,11 +692,28 @@ function generateShowIfBindings(ast: NeuronAST): string {
   return lines.join('\n');
 }
 
+function generatePersist(persistFields: string[]): string {
+  if (persistFields.length === 0) return '';
+  return `function _initPersist() {
+  _persistFields.forEach(function(key) {
+    try {
+      var stored = localStorage.getItem('neuron:' + key);
+      if (stored !== null) {
+        _state[key] = JSON.parse(stored);
+        (_bindings[key] || []).forEach(function(fn) { fn(_state[key]); });
+      }
+    } catch(e) {}
+  });
+}`;
+}
+
 function generateInit(ast: NeuronAST): string {
   const hasShowIf = collectShowIfComponents(ast).length > 0;
+  const persistFields = ast.states.flatMap(s => s.persist || []);
   const showIfCall = hasShowIf ? '\n  _initShowIf();' : '';
+  const persistCall = persistFields.length > 0 ? '\n  _initPersist();' : '';
   return `document.addEventListener('DOMContentLoaded', function() {
-  _initBindings();${showIfCall}
+  _initBindings();${showIfCall}${persistCall}
   _initRouter();
   _autoLoad();
 });`;
