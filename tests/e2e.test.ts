@@ -380,3 +380,42 @@ ACTION search
     expect(result.css).toContain('neuron-spin');
   });
 });
+
+describe('end-to-end: build-time validation', () => {
+  it('reports validation errors for invalid references', () => {
+    writeFileSync(join(TMP, 'app.neuron'), `STATE persist: todos, wishlist
+  todos: []
+
+---
+
+ACTION fetch
+  call: missing-api`);
+
+    mkdirSync(join(TMP, 'pages'), { recursive: true });
+    writeFileSync(join(TMP, 'pages', 'home.neuron'), `PAGE home "Home" /
+
+  product-grid
+    data: nonexistent
+    on_click: missing-action`);
+
+    writeFileSync(join(TMP, 'pages', 'dupe.neuron'), `PAGE home "Duplicate" /other`);
+
+    const result = compile({
+      appFile: join(TMP, 'app.neuron'),
+      pageFiles: [
+        join(TMP, 'pages', 'home.neuron'),
+        join(TMP, 'pages', 'dupe.neuron'),
+      ],
+      apiFiles: [],
+      themeFile: null,
+      appTitle: 'Test',
+    });
+
+    expect(result.errors.length).toBeGreaterThanOrEqual(4);
+    expect(result.errors.some(e => e.includes('wishlist'))).toBe(true);
+    expect(result.errors.some(e => e.includes('missing-api'))).toBe(true);
+    expect(result.errors.some(e => e.includes('nonexistent'))).toBe(true);
+    expect(result.errors.some(e => e.includes('missing-action'))).toBe(true);
+    expect(result.errors.some(e => e.includes('home') && e.includes('중복'))).toBe(true);
+  });
+});
