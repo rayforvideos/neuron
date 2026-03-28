@@ -48,4 +48,10 @@ describe('generateCSS', () => {
     const css = generateCSS(DEFAULT_THEME);
     expect(css).toContain('.neuron-empty');
   });
+
+  it('includes form validation styles', () => {
+    const css = generateCSS(DEFAULT_THEME);
+    expect(css).toContain('input:invalid');
+    expect(css).toContain('border-color');
+  });
 });

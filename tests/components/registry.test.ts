@@ -94,6 +94,40 @@ describe('renderComponent', () => {
     expect(html).toContain('cart-summary');
   });
 
+  it('renders form fields with validation attributes', () => {
+    const node: ComponentNode = {
+      type: 'COMPONENT',
+      componentType: 'form',
+      properties: [
+        { key: 'field_email', value: '"Email"', validation: { type: 'email', required: true } },
+        { key: 'field_age', value: '"Age"', validation: { type: 'number', min: 1, max: 200 } },
+        { key: 'submit', value: '"Save" -> save' },
+      ],
+      children: [],
+    };
+    const html = renderComponent(node);
+    expect(html).toContain('type="email"');
+    expect(html).toContain('required');
+    expect(html).toContain('type="number"');
+    expect(html).toContain('min="1"');
+    expect(html).toContain('max="200"');
+  });
+
+  it('renders form fields without validation as plain inputs', () => {
+    const node: ComponentNode = {
+      type: 'COMPONENT',
+      componentType: 'form',
+      properties: [
+        { key: 'field_name', value: '"Name"' },
+        { key: 'submit', value: '"Go" -> go' },
+      ],
+      children: [],
+    };
+    const html = renderComponent(node);
+    expect(html).toContain('placeholder="Name"');
+    expect(html).not.toContain('required');
+  });
+
   it('renders section with children', () => {
     const child = makeComponent('text', { content: '"Hello"' });
     const html = renderComponent(makeComponent('section', {}, { children: [child] }));

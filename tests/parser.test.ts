@@ -118,6 +118,44 @@ describe('parse', () => {
     });
   });
 
+  describe('form field validation parsing', () => {
+    it('parses form field with validation sub-properties', () => {
+      const ast = parse(`PAGE home "Home" /
+
+  form
+    field_email: "Email"
+      type: email
+      required: true
+    field_age: "Age"
+      type: number
+      min: 1
+      max: 200
+    submit: "Save" -> save
+`);
+      const form = ast.pages[0].components[0];
+      const emailProp = form.properties.find(p => p.key === 'field_email');
+      expect(emailProp).toBeDefined();
+      expect(emailProp!.validation).toEqual({ type: 'email', required: true });
+
+      const ageProp = form.properties.find(p => p.key === 'field_age');
+      expect(ageProp).toBeDefined();
+      expect(ageProp!.validation).toEqual({ type: 'number', min: 1, max: 200 });
+    });
+
+    it('form fields without validation have undefined validation', () => {
+      const ast = parse(`PAGE home "Home" /
+
+  form
+    field_name: "Name"
+    submit: "Go" -> save
+`);
+      const form = ast.pages[0].components[0];
+      const nameProp = form.properties.find(p => p.key === 'field_name');
+      expect(nameProp).toBeDefined();
+      expect(nameProp!.validation).toBeUndefined();
+    });
+  });
+
   it('parses full app.neuron with mixed sections', () => {
     const input = `STATE\n  cart: []\n  products: []\n\n---\n\nACTION add-to-cart\n  append: product -> cart\n\nACTION remove-from-cart\n  remove: cart where id matches`;
     const ast = parse(input);

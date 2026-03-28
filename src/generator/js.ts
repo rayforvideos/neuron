@@ -268,12 +268,17 @@ function generateActionBody(action: ActionNode, apiMap: Map<string, ApiNode>): s
 
 function generateFormHandling(): string {
   return `document.addEventListener('submit', function(e) {
-  const form = e.target.closest('form[data-action]');
+  var form = e.target.closest('form');
   if (form) {
     e.preventDefault();
-    const name = form.getAttribute('data-action');
-    const formData = Object.fromEntries(new FormData(form));
-    if (_actions[name]) _actions[name](formData);
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      return;
+    }
+    var actionBtn = form.querySelector('[data-action]');
+    var name = actionBtn ? actionBtn.getAttribute('data-action') : null;
+    var formData = Object.fromEntries(new FormData(form));
+    if (name && _actions[name]) _actions[name](formData);
   }
 });`;
 }

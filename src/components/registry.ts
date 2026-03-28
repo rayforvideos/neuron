@@ -155,7 +155,18 @@ const renderers: Record<string, (node: ComponentNode) => string> = {
       .filter((p) => p.key.startsWith('field'))
       .map((p) => {
         const val = unquote(p.value);
-        return `<input class="neuron-input" name="${p.key}" placeholder="${val}">`;
+        let attrs = `class="neuron-input" name="${p.key}" placeholder="${val}"`;
+        if (p.validation) {
+          if (p.validation.type) attrs += ` type="${p.validation.type}"`;
+          if (p.validation.required) attrs += ` required`;
+          if (p.validation.min !== undefined) {
+            attrs += p.validation.type === 'number' ? ` min="${p.validation.min}"` : ` minlength="${p.validation.min}"`;
+          }
+          if (p.validation.max !== undefined) {
+            attrs += p.validation.type === 'number' ? ` max="${p.validation.max}"` : ` maxlength="${p.validation.max}"`;
+          }
+        }
+        return `<input ${attrs}>`;
       })
       .join('');
     return `<form class="neuron-form">${fields}${submitHtml}</form>`;

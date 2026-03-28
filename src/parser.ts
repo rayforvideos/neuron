@@ -6,6 +6,7 @@ import {
   ApiNode,
   PageNode,
   ComponentNode,
+  ComponentProperty,
 } from './ast';
 
 export function parse(source: string): NeuronAST {
@@ -179,6 +180,31 @@ function parseComponent(tokens: Token[], start: number): [ComponentNode, number]
           node.showIf = { field: raw, negate: false };
         }
         i++;
+      } else if (cur.key.startsWith('field_') && node.componentType === 'form') {
+        const prop: ComponentProperty = { key: cur.key, value: cur.value };
+        const fieldIndent = cur.indent;
+        i++;
+        const validation: Record<string, string | boolean | number> = {};
+        let hasValidation = false;
+        while (i < tokens.length) {
+          const sub = tokens[i];
+          if (sub.type !== 'PROPERTY' || sub.indent <= fieldIndent) break;
+          hasValidation = true;
+          if (sub.key === 'required') {
+            validation.required = sub.value === 'true';
+          } else if (sub.key === 'min') {
+            validation.min = Number(sub.value);
+          } else if (sub.key === 'max') {
+            validation.max = Number(sub.value);
+          } else if (sub.key === 'type') {
+            validation.type = sub.value;
+          }
+          i++;
+        }
+        if (hasValidation) {
+          prop.validation = validation as any;
+        }
+        node.properties.push(prop);
       } else {
         node.properties.push({ key: cur.key, value: cur.value });
         i++;

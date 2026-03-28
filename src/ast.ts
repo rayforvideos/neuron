@@ -32,6 +32,7 @@ export interface ApiNode {
 export interface ComponentProperty {
   key: string;
   value: string;
+  validation?: FormFieldValidation;
 }
 
 export interface FormFieldValidation {

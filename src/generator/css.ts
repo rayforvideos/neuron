@@ -225,6 +225,14 @@ a { color: var(--color-primary); text-decoration: none; }
   color: var(--color-secondary);
   font-size: var(--font-size-lg);
 }
+
+input:invalid:not(:placeholder-shown) {
+  border-color: var(--color-danger);
+}
+
+input:valid:not(:placeholder-shown) {
+  border-color: var(--color-primary);
+}
 `;
 
 export function generateCSS(theme: Theme): string {
