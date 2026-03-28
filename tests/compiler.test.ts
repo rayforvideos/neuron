@@ -74,4 +74,36 @@ ACTION add-todo
 
     rmSync(tmpDir, { recursive: true, force: true });
   });
+
+  it('reports error when use: references missing logic file', () => {
+    const tmpDir = join(__dirname, '.tmp-compiler-missing');
+    mkdirSync(tmpDir, { recursive: true });
+    mkdirSync(join(tmpDir, 'pages'), { recursive: true });
+
+    writeFileSync(join(tmpDir, 'app.neuron'), `STATE
+  todos: []
+
+---
+
+ACTION add-todo
+  use: logic/missing.addTodo`);
+
+    writeFileSync(join(tmpDir, 'pages', 'home.neuron'), `PAGE home "Home" /
+
+  text
+    content: "Hello"`);
+
+    const result = compile({
+      appFile: join(tmpDir, 'app.neuron'),
+      pageFiles: [join(tmpDir, 'pages', 'home.neuron')],
+      apiFiles: [],
+      themeFile: null,
+      appTitle: 'Test',
+    });
+
+    expect(result.errors.length).toBeGreaterThan(0);
+    expect(result.errors[0]).toContain('logic/missing.js');
+
+    rmSync(tmpDir, { recursive: true, force: true });
+  });
 });

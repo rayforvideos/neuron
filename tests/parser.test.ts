@@ -84,6 +84,10 @@ describe('parse', () => {
       const ast = parse(`PAGE home "Home" /\n`);
       expect(ast.pages[0].params).toEqual([]);
     });
+
+    it('throws on empty route param name', () => {
+      expect(() => parse(`PAGE detail "Detail" /product/:\n`)).toThrow();
+    });
   });
 
   describe('show_if parsing', () => {
@@ -105,6 +109,14 @@ describe('parse', () => {
 `);
       const btn = ast.pages[0].components[0];
       expect(btn.showIf).toEqual({ field: 'user', negate: false });
+    });
+
+    it('throws on invalid show_if expression', () => {
+      expect(() => parse(`PAGE home "Home" /
+
+  button "Test" -> test
+    show_if: user && admin
+`)).toThrow();
     });
 
     it('component without show_if has undefined showIf', () => {
@@ -140,6 +152,16 @@ describe('parse', () => {
       const ageProp = form.properties.find(p => p.key === 'field_age');
       expect(ageProp).toBeDefined();
       expect(ageProp!.validation).toEqual({ type: 'number', min: 1, max: 200 });
+    });
+
+    it('throws on invalid form field type', () => {
+      expect(() => parse(`PAGE home "Home" /
+
+  form
+    field_date: "Date"
+      type: date
+    submit: "Go" -> go
+`)).toThrow();
     });
 
     it('form fields without validation have undefined validation', () => {

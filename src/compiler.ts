@@ -6,6 +6,7 @@ import { generateHTML } from './generator/html';
 import { generateCSS } from './generator/css';
 import { generateJS } from './generator/js';
 import { loadTheme } from './theme';
+import { NeuronError, formatError } from './errors';
 
 export interface CompileInput {
   appFile: string;
@@ -69,6 +70,20 @@ export function compile(input: CompileInput): CompileResult {
     const jsFiles = readdirSync(logicDir).filter(f => f.endsWith('.js'));
     for (const file of jsFiles) {
       logicFiles[`logic/${file}`] = readFileSync(join(logicDir, file), 'utf-8');
+    }
+  }
+
+  // Validate use: references
+  for (const action of ast.actions) {
+    for (const step of action.steps) {
+      if (step.key === 'use') {
+        const val = step.value.trim();
+        const lastDot = val.lastIndexOf('.');
+        const filePath = val.slice(0, lastDot) + '.js';
+        if (!logicFiles[filePath]) {
+          errors.push(formatError(new NeuronError('logic_file_not_found', filePath, {})));
+        }
+      }
     }
   }
 

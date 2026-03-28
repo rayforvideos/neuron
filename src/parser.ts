@@ -8,6 +8,7 @@ import {
   ComponentNode,
   ComponentProperty,
 } from './ast';
+import { NeuronError } from './errors';
 
 export function parse(source: string): NeuronAST {
   const tokens = tokenize(source);
@@ -137,6 +138,15 @@ function parsePage(tokens: Token[], start: number): [PageNode, number] {
     node.params.push(match[1]);
   }
 
+  // Validate route params - detect empty param names like /product/:
+  if (keyword.route.includes('/:') && node.params.length === 0) {
+    throw new NeuronError('invalid_route_param', keyword.route, {});
+  }
+  // Also check for /:/ or /:$ patterns (trailing colon without name)
+  if (/:(?:\/|$)/.test(keyword.route)) {
+    throw new NeuronError('invalid_route_param', keyword.route, {});
+  }
+
   let i = start + 1;
 
   while (i < tokens.length) {
@@ -174,6 +184,9 @@ function parseComponent(tokens: Token[], start: number): [ComponentNode, number]
     if (cur.type === 'PROPERTY') {
       if (cur.key === 'show_if') {
         const raw = cur.value.trim();
+        if (!/^!?\w+$/.test(raw)) {
+          throw new NeuronError('invalid_show_if', raw, {});
+        }
         if (raw.startsWith('!')) {
           node.showIf = { field: raw.slice(1).trim(), negate: true };
         } else {
@@ -197,6 +210,10 @@ function parseComponent(tokens: Token[], start: number): [ComponentNode, number]
           } else if (sub.key === 'max') {
             validation.max = Number(sub.value);
           } else if (sub.key === 'type') {
+            const validTypes = ['text', 'email', 'password', 'number', 'tel', 'url'];
+            if (!validTypes.includes(sub.value)) {
+              throw new NeuronError('invalid_form_field_type', sub.value, {});
+            }
             validation.type = sub.value;
           }
           i++;
