@@ -23,7 +23,9 @@ project/
 │   └── *.neuron             # API definitions (optional)
 ├── themes/
 │   └── theme.json           # Design tokens (optional, has defaults)
-└── assets/                  # Static files (copied to dist/assets/)
+├── assets/                  # Static files (copied to dist/assets/)
+└── logic/              # External JS logic (optional)
+    └── *.js
 ```
 
 ## neuron.json
@@ -98,6 +100,57 @@ Call options:
 - `query: stateField` - append `?q=stateValue` to URL
 - `target: stateField` - set state with response data
 
+**set** - Set state to a specific value:
+```
+ACTION clear-search
+  set: query -> ""
+```
+Generated: `function() { _setState('query', ''); }`
+
+**toggle** - Toggle boolean state:
+```
+ACTION toggle-dark
+  toggle: darkMode
+```
+Generated: `function() { _setState('darkMode', !_state.darkMode); }`
+
+**increment** - Increment number state:
+```
+ACTION increase
+  increment: count
+```
+Generated: `function() { _setState('count', _state.count + 1); }`
+
+**decrement** - Decrement number state:
+```
+ACTION decrease
+  decrement: count
+```
+Generated: `function() { _setState('count', _state.count - 1); }`
+
+**navigate** - Programmatic navigation:
+```
+ACTION go-home
+  navigate: /
+```
+Generated: `function() { _navigate('/'); }`
+
+**use** - Delegate to external JS function:
+```
+ACTION add-todo
+  use: logic/todos.addTodo
+```
+JS function convention: `(state, payload) => partialState`
+
+### Dynamic Routes
+
+```
+PAGE detail "Detail" /item/:id
+PAGE edit "Edit" /category/:catId/item/:itemId
+```
+
+Route parameters are available as `_state._params` (e.g., `_state._params.id`).
+
 ## Keyword 3: API (apis/*.neuron)
 
 Defines HTTP endpoints. One API per file. File goes in `apis/` directory.
@@ -161,6 +214,21 @@ PAGE home "Home" /
   footer
     text: "© 2026 My App"
 ```
+
+## Conditional Rendering
+
+```
+button "Logout" -> logout
+  show_if: user
+
+button "Login" -> /login
+  show_if: !user
+```
+
+| Syntax | Meaning |
+|--------|---------|
+| `show_if: field` | Show when `_state.field` is truthy |
+| `show_if: !field` | Show when `_state.field` is falsy |
 
 ## Components
 
@@ -294,13 +362,20 @@ button
   action: action-name        # optional
 ```
 
-**form**
+**form** with validation
 ```
 form
-  field_name: "Placeholder"
   field_email: "Email"
-  submit: "Submit" -> action-name
+    type: email
+    required: true
+  field_age: "Age"
+    type: number
+    min: 1
+    max: 200
+  submit: "Save" -> save
 ```
+
+Validation attributes: `type` (text/email/password/number/tel/url), `required` (true), `min`, `max`
 
 **search**
 ```
@@ -321,6 +396,26 @@ modal
 tabs
   items: [Tab1, Tab2, Tab3]
 ```
+
+## External Logic (logic/*.js)
+
+Complex business logic lives in plain JS files:
+
+```javascript
+// logic/todos.js
+export function addTodo(state, payload) {
+  return {
+    todos: [...state.todos, { id: Date.now(), text: payload.text, done: false }]
+  };
+}
+```
+
+**Convention:** `(state, payload) => partialState`
+- `state`: read-only copy of current state
+- `payload`: data passed from the action caller
+- Return: object with only the state fields to update
+
+Reference from DSL: `use: logic/todos.addTodo`
 
 ## Theme (themes/theme.json)
 

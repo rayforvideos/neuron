@@ -42,6 +42,16 @@ dist/
 └── assets/
 ```
 
+## 새 기능 (v2.0)
+
+- **새 액션 패턴**: `set`, `toggle`, `increment`, `decrement`, `navigate`
+- **외부 JS 로직**: `use: logic/file.function` — 복잡한 로직은 JS로
+- **동적 라우팅**: `/product/:id` 스타일 파라미터
+- **조건부 렌더링**: `show_if: state` / `show_if: !state`
+- **폼 검증**: `type`, `required`, `min`, `max` 속성
+
+자세한 문법은 [REFERENCE.md](REFERENCE.md)를 참고하세요.
+
 ## DSL 문법
 
 키워드는 4개뿐: `STATE` `ACTION` `API` `PAGE`
