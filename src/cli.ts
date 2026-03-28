@@ -2,6 +2,7 @@ import { resolve, join, basename } from 'path';
 import { existsSync, mkdirSync, writeFileSync, readdirSync, readFileSync, copyFileSync } from 'fs';
 import { compile } from './compiler';
 import { scaffold } from './scaffold';
+import { startDevServer } from './dev-server';
 
 export function run(args: string[]): void {
   const command = args[0];
@@ -122,9 +123,29 @@ http.createServer(function(req, res) {
     return;
   }
 
+  if (command === 'dev') {
+    const projectDir = resolve(process.cwd());
+    const appFile = join(projectDir, 'app.neuron');
+
+    if (!existsSync(appFile)) {
+      console.error('[NEURON ERROR] app.neuron not found in current directory');
+      process.exit(1);
+    }
+
+    let port = 3000;
+    const portIdx = args.indexOf('--port');
+    if (portIdx !== -1 && args[portIdx + 1]) {
+      port = parseInt(args[portIdx + 1], 10);
+    }
+
+    startDevServer({ port, projectDir });
+    return;
+  }
+
   console.log('Neuron DSL Compiler');
   console.log('');
   console.log('Commands:');
   console.log('  neuron new <name>   Create a new project');
   console.log('  neuron build        Build the current project');
+  console.log('  neuron dev          Start dev server with live reload');
 }

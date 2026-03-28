@@ -3,6 +3,7 @@ import { mkdirSync, existsSync, rmSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { compile } from '../src/compiler';
 import { scaffold } from '../src/scaffold';
+import { run } from '../src/cli';
 
 const TMP = join(__dirname, '.tmp-cli-test');
 
@@ -52,5 +53,16 @@ describe('neuron new (via scaffold)', () => {
     scaffold('my-project', TMP);
     const logicDir = join(TMP, 'my-project', 'logic');
     expect(existsSync(logicDir)).toBe(true);
+  });
+});
+
+describe('neuron dev (CLI help)', () => {
+  it('shows dev command in help', () => {
+    const originalLog = console.log;
+    const output: string[] = [];
+    console.log = (...args: any[]) => output.push(args.join(' '));
+    run([]);
+    console.log = originalLog;
+    expect(output.some(line => line.includes('dev'))).toBe(true);
   });
 });
