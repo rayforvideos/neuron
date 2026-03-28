@@ -190,6 +190,51 @@ function generateActionBody(action: ActionNode, apiMap: Map<string, ApiNode>): s
     }`;
   }
 
+  // set pattern: "field -> value"
+  if (stepMap.has('set')) {
+    const val = stepMap.get('set')!;
+    const parts = val.split('->').map(s => s.trim());
+    const field = parts[0];
+    const rawValue = parts[1];
+    let jsValue: string;
+    if (rawValue.startsWith('"') && rawValue.endsWith('"')) {
+      jsValue = rawValue;
+    } else if (rawValue === 'null' || rawValue === 'true' || rawValue === 'false') {
+      jsValue = rawValue;
+    } else if (rawValue === '[]') {
+      jsValue = '[]';
+    } else if (!isNaN(Number(rawValue))) {
+      jsValue = rawValue;
+    } else {
+      jsValue = `'${rawValue}'`;
+    }
+    return `function() {\n    _setState('${field}', ${jsValue});\n  }`;
+  }
+
+  // toggle pattern: "field"
+  if (stepMap.has('toggle')) {
+    const field = stepMap.get('toggle')!.trim();
+    return `function() {\n    _setState('${field}', !_state.${field});\n  }`;
+  }
+
+  // increment pattern: "field"
+  if (stepMap.has('increment')) {
+    const field = stepMap.get('increment')!.trim();
+    return `function() {\n    _setState('${field}', _state.${field} + 1);\n  }`;
+  }
+
+  // decrement pattern: "field"
+  if (stepMap.has('decrement')) {
+    const field = stepMap.get('decrement')!.trim();
+    return `function() {\n    _setState('${field}', _state.${field} - 1);\n  }`;
+  }
+
+  // navigate pattern: "/route"
+  if (stepMap.has('navigate')) {
+    const route = stepMap.get('navigate')!.trim();
+    return `function() {\n    _navigate('${route}');\n  }`;
+  }
+
   return `function() {}`;
 }
 

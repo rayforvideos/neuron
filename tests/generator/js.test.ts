@@ -82,6 +82,79 @@ describe('generateJS', () => {
     expect(js).toContain('_initBindings();');
   });
 
+  describe('new action patterns', () => {
+    it('generates set action', () => {
+      const setAst: NeuronAST = {
+        states: [{ type: 'STATE', fields: [{ name: 'query', defaultValue: '""' }] }],
+        actions: [{ type: 'ACTION', name: 'clear-search', steps: [{ key: 'set', value: 'query -> ""' }] }],
+        apis: [],
+        pages: [{ type: 'PAGE', name: 'home', title: 'Home', route: '/', params: [], components: [] }],
+      };
+      const js = generateJS(setAst);
+      expect(js).toContain("'clear-search'");
+      expect(js).toContain("_setState('query'");
+    });
+
+    it('generates set action with null value', () => {
+      const setAst: NeuronAST = {
+        states: [{ type: 'STATE', fields: [{ name: 'user', defaultValue: 'null' }] }],
+        actions: [{ type: 'ACTION', name: 'logout', steps: [{ key: 'set', value: 'user -> null' }] }],
+        apis: [],
+        pages: [{ type: 'PAGE', name: 'home', title: 'Home', route: '/', params: [], components: [] }],
+      };
+      const js = generateJS(setAst);
+      expect(js).toContain("_setState('user', null)");
+    });
+
+    it('generates toggle action', () => {
+      const toggleAst: NeuronAST = {
+        states: [{ type: 'STATE', fields: [{ name: 'darkMode', defaultValue: 'false' }] }],
+        actions: [{ type: 'ACTION', name: 'toggle-dark', steps: [{ key: 'toggle', value: 'darkMode' }] }],
+        apis: [],
+        pages: [{ type: 'PAGE', name: 'home', title: 'Home', route: '/', params: [], components: [] }],
+      };
+      const js = generateJS(toggleAst);
+      expect(js).toContain("'toggle-dark'");
+      expect(js).toContain("!_state.darkMode");
+    });
+
+    it('generates increment action', () => {
+      const incAst: NeuronAST = {
+        states: [{ type: 'STATE', fields: [{ name: 'count', defaultValue: '0' }] }],
+        actions: [{ type: 'ACTION', name: 'increase', steps: [{ key: 'increment', value: 'count' }] }],
+        apis: [],
+        pages: [{ type: 'PAGE', name: 'home', title: 'Home', route: '/', params: [], components: [] }],
+      };
+      const js = generateJS(incAst);
+      expect(js).toContain("'increase'");
+      expect(js).toContain("_state.count + 1");
+    });
+
+    it('generates decrement action', () => {
+      const decAst: NeuronAST = {
+        states: [{ type: 'STATE', fields: [{ name: 'count', defaultValue: '0' }] }],
+        actions: [{ type: 'ACTION', name: 'decrease', steps: [{ key: 'decrement', value: 'count' }] }],
+        apis: [],
+        pages: [{ type: 'PAGE', name: 'home', title: 'Home', route: '/', params: [], components: [] }],
+      };
+      const js = generateJS(decAst);
+      expect(js).toContain("'decrease'");
+      expect(js).toContain("_state.count - 1");
+    });
+
+    it('generates navigate action', () => {
+      const navAst: NeuronAST = {
+        states: [{ type: 'STATE', fields: [] }],
+        actions: [{ type: 'ACTION', name: 'go-home', steps: [{ key: 'navigate', value: '/' }] }],
+        apis: [],
+        pages: [{ type: 'PAGE', name: 'home', title: 'Home', route: '/', params: [], components: [] }],
+      };
+      const js = generateJS(navAst);
+      expect(js).toContain("'go-home'");
+      expect(js).toContain("_navigate('/')");
+    });
+  });
+
   describe('runtime renderers', () => {
     const astWithComponents: NeuronAST = {
       states: [{ type: 'STATE', fields: [
