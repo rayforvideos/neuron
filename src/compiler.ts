@@ -1,4 +1,5 @@
-import { readFileSync } from 'fs';
+import { readFileSync, existsSync, readdirSync } from 'fs';
+import { join, dirname } from 'path';
 import { parse } from './parser';
 import type { NeuronAST } from './ast';
 import { generateHTML } from './generator/html';
@@ -60,10 +61,21 @@ export function compile(input: CompileInput): CompileResult {
   // Load theme
   const theme = loadTheme(input.themeFile);
 
+  // Scan logic/ directory
+  const logicFiles: Record<string, string> = {};
+  const projectDir = dirname(input.appFile);
+  const logicDir = join(projectDir, 'logic');
+  if (existsSync(logicDir)) {
+    const jsFiles = readdirSync(logicDir).filter(f => f.endsWith('.js'));
+    for (const file of jsFiles) {
+      logicFiles[`logic/${file}`] = readFileSync(join(logicDir, file), 'utf-8');
+    }
+  }
+
   // Generate outputs
   const html = generateHTML(ast.pages, input.appTitle);
   const css = generateCSS(theme);
-  const js = generateJS(ast);
+  const js = generateJS(ast, logicFiles);
 
   return { html, css, js, errors };
 }

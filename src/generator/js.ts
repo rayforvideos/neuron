@@ -2,8 +2,12 @@
 
 import type { NeuronAST, ActionNode, ApiNode, ComponentNode } from '../ast';
 
-export function generateJS(ast: NeuronAST): string {
+export function generateJS(ast: NeuronAST, logicFiles?: Record<string, string>): string {
   const lines: string[] = [];
+
+  // 0. Bundle external logic files
+  const logicBundle = bundleLogicFiles(logicFiles || {});
+  if (logicBundle) lines.push(logicBundle);
 
   // 1. State initialization
   lines.push(generateState(ast));
@@ -41,6 +45,45 @@ export function generateJS(ast: NeuronAST): string {
   lines.push(generateInit(ast));
 
   return lines.join('\n\n');
+}
+
+function bundleLogicFiles(logicFiles: Record<string, string>): string {
+  if (!logicFiles || Object.keys(logicFiles).length === 0) return '';
+
+  const parts: string[] = ['// -- External Logic --'];
+  for (const [filePath, content] of Object.entries(logicFiles)) {
+    const varName = '_logic_' + filePath
+      .replace(/^logic\//, '')
+      .replace(/\.js$/, '')
+      .replace(/[^a-zA-Z0-9]/g, '_');
+
+    const exportRegex = /export\s+(?:async\s+)?function\s+(\w+)/g;
+    const functions: string[] = [];
+    let match;
+    while ((match = exportRegex.exec(content)) !== null) {
+      functions.push(match[1]);
+    }
+
+    parts.push(`var ${varName} = {};`);
+    for (const fnName of functions) {
+      const fnRegex = new RegExp(`export\\s+(async\\s+)?function\\s+${fnName}\\s*\\([^)]*\\)\\s*\\{`);
+      const fnMatch = fnRegex.exec(content);
+      if (fnMatch) {
+        const startIdx = fnMatch.index;
+        let braceCount = 0;
+        let endIdx = startIdx;
+        for (let j = content.indexOf('{', startIdx); j < content.length; j++) {
+          if (content[j] === '{') braceCount++;
+          if (content[j] === '}') braceCount--;
+          if (braceCount === 0) { endIdx = j; break; }
+        }
+        const fnBody = content.slice(startIdx, endIdx + 1)
+          .replace(/^export\s+/, '');
+        parts.push(`${varName}.${fnName} = ${fnBody.replace(/^(async\s+)?function\s+\w+/, '$1function')};`);
+      }
+    }
+  }
+  return parts.join('\n');
 }
 
 function generateState(ast: NeuronAST): string {
@@ -261,6 +304,24 @@ function generateActionBody(action: ActionNode, apiMap: Map<string, ApiNode>): s
   if (stepMap.has('navigate')) {
     const route = stepMap.get('navigate')!.trim();
     return `function() {\n    _navigate('${route}');\n  }`;
+  }
+
+  // use pattern: "logic/file.functionName"
+  if (stepMap.has('use')) {
+    const val = stepMap.get('use')!.trim();
+    const lastDot = val.lastIndexOf('.');
+    const filePath = val.slice(0, lastDot);
+    const fnName = val.slice(lastDot + 1);
+    const varName = '_logic_' + filePath
+      .replace(/^logic\//, '')
+      .replace(/\.js$/, '')
+      .replace(/[^a-zA-Z0-9]/g, '_');
+    return `async function(payload) {
+    var result = await ${varName}.${fnName}(Object.assign({}, _state), payload);
+    if (result && typeof result === 'object') {
+      Object.keys(result).forEach(function(k) { _setState(k, result[k]); });
+    }
+  }`;
   }
 
   return `function() {}`;

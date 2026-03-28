@@ -230,6 +230,38 @@ describe('generateJS', () => {
     });
   });
 
+  describe('use: external JS delegation', () => {
+    it('generates action that calls external logic function', () => {
+      const useAst: NeuronAST = {
+        states: [{ type: 'STATE', fields: [{ name: 'todos', defaultValue: '[]' }] }],
+        actions: [{ type: 'ACTION', name: 'add-todo', steps: [{ key: 'use', value: 'logic/todos.addTodo' }] }],
+        apis: [],
+        pages: [{ type: 'PAGE', name: 'home', title: 'Home', route: '/', params: [], components: [] }],
+      };
+      const logicFiles: Record<string, string> = {
+        'logic/todos.js': `export function addTodo(state, text) {
+  return { todos: [...state.todos, { id: Date.now(), text, done: false }] };
+}`,
+      };
+      const js = generateJS(useAst, logicFiles);
+      expect(js).toContain('_logic_todos');
+      expect(js).toContain('addTodo');
+      expect(js).toContain("'add-todo'");
+      expect(js).toContain('_setState');
+    });
+
+    it('generates JS without logic section when no use: actions', () => {
+      const basicAst: NeuronAST = {
+        states: [{ type: 'STATE', fields: [{ name: 'count', defaultValue: '0' }] }],
+        actions: [{ type: 'ACTION', name: 'inc', steps: [{ key: 'increment', value: 'count' }] }],
+        apis: [],
+        pages: [{ type: 'PAGE', name: 'home', title: 'Home', route: '/', params: [], components: [] }],
+      };
+      const js = generateJS(basicAst);
+      expect(js).not.toContain('_logic_');
+    });
+  });
+
   describe('runtime renderers', () => {
     const astWithComponents: NeuronAST = {
       states: [{ type: 'STATE', fields: [
