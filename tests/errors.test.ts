@@ -63,4 +63,22 @@ describe('formatError', () => {
     const err = new NeuronError('invalid_route_param', '/product/:', {});
     expect(formatError(err)).toContain('/product/:');
   });
+
+  it('formats duplicate_route error', () => {
+    const err = new NeuronError('duplicate_route', '/home', {});
+    expect(formatError(err)).toContain('/home');
+    expect(formatError(err)).toContain('중복');
+  });
+
+  it('formats duplicate_page error', () => {
+    const err = new NeuronError('duplicate_page', 'home', {});
+    expect(formatError(err)).toContain('home');
+    expect(formatError(err)).toContain('중복');
+  });
+
+  it('formats undefined_persist_field error', () => {
+    const err = new NeuronError('undefined_persist_field', 'wishlist', {});
+    expect(formatError(err)).toContain('wishlist');
+    expect(formatError(err)).toContain('STATE');
+  });
 });

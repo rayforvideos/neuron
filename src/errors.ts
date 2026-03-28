@@ -10,7 +10,10 @@ export type ErrorCode =
   | 'logic_function_not_found'
   | 'invalid_show_if'
   | 'invalid_form_field_type'
-  | 'invalid_route_param';
+  | 'invalid_route_param'
+  | 'duplicate_route'
+  | 'duplicate_page'
+  | 'undefined_persist_field';
 
 export class NeuronError extends Error {
   code: ErrorCode;
@@ -50,6 +53,12 @@ const messages: Record<ErrorCode, (target: string, meta: Record<string, unknown>
     `[NEURON ERROR] 폼 필드 타입이 잘못되었습니다: "${target}"\n→ 사용 가능: text, email, password, number, tel, url`,
   invalid_route_param: (target) =>
     `[NEURON ERROR] 동적 라우트 파라미터 이름이 비어 있습니다: ${target}\n→ /product/:id 형태로 파라미터 이름을 지정하세요`,
+  duplicate_route: (target) =>
+    `[NEURON ERROR] 중복 라우트: "${target}"\n→ 각 PAGE는 고유한 라우트를 가져야 합니다`,
+  duplicate_page: (target) =>
+    `[NEURON ERROR] 중복 페이지 이름: "${target}"\n→ 각 PAGE는 고유한 이름을 가져야 합니다`,
+  undefined_persist_field: (target) =>
+    `[NEURON ERROR] persist 필드 "${target}"가 STATE에 정의되지 않음\n→ STATE 섹션에 "${target}" 를 추가하세요`,
 };
 
 export function formatError(err: NeuronError): string {
