@@ -13,7 +13,9 @@ export function run(args: string[]): void {
       console.error('Usage: neuron new <project-name>');
       process.exit(1);
     }
-    scaffold(projectName, process.cwd());
+    const themeIdx = args.indexOf('--theme');
+    const themePreset = themeIdx !== -1 && args[themeIdx + 1] ? args[themeIdx + 1] : undefined;
+    scaffold(projectName, process.cwd(), themePreset);
     console.log(`Created project: ${projectName}/`);
     return;
   }

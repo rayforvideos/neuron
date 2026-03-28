@@ -54,6 +54,16 @@ describe('neuron new (via scaffold)', () => {
     const logicDir = join(TMP, 'my-project', 'logic');
     expect(existsSync(logicDir)).toBe(true);
   });
+
+  it('neuron new --theme sets theme in neuron.json', () => {
+    const tmpDir = join(__dirname, '.tmp-scaffold-theme');
+    mkdirSync(tmpDir, { recursive: true });
+    scaffold('test-theme', tmpDir, 'dark');
+    const neuronJson = JSON.parse(readFileSync(join(tmpDir, 'test-theme', 'neuron.json'), 'utf-8'));
+    expect(neuronJson.theme).toBe('dark');
+    expect(existsSync(join(tmpDir, 'test-theme', 'themes', 'theme.json'))).toBe(false);
+    rmSync(join(tmpDir, 'test-theme'), { recursive: true, force: true });
+  });
 });
 
 describe('neuron dev (CLI help)', () => {
