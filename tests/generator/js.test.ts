@@ -398,6 +398,29 @@ describe('generateJS', () => {
     });
   });
 
+  describe('loading/error in renderers', () => {
+    it('product-grid renderer checks _loading state', () => {
+      const gridAst: NeuronAST = {
+        states: [{ type: 'STATE', fields: [{ name: 'products', defaultValue: '[]' }], persist: [] }],
+        actions: [],
+        apis: [{ type: 'API', name: 'products', method: 'GET', endpoint: '/api/products', options: { on_load: 'true' } }],
+        pages: [{
+          type: 'PAGE', name: 'home', title: 'Home', route: '/', params: [],
+          components: [{
+            type: 'COMPONENT', componentType: 'product-grid',
+            properties: [{ key: 'data', value: 'products' }],
+            children: [],
+          }],
+        }],
+      };
+      const js = generateJS(gridAst);
+      expect(js).toContain('_state._loading');
+      expect(js).toContain('neuron-loading');
+      expect(js).toContain('_state._error');
+      expect(js).toContain('neuron-error');
+    });
+  });
+
   describe('runtime renderers', () => {
     const astWithComponents: NeuronAST = {
       states: [{ type: 'STATE', fields: [

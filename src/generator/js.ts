@@ -553,6 +553,15 @@ function generateRuntimeRenderers(ast: NeuronAST): string {
     var cols = grid.getAttribute('data-cols') || '3';
     var action = grid.getAttribute('data-action');
     grid.style.gridTemplateColumns = 'repeat(' + cols + ', 1fr)';
+    var source = grid.getAttribute('data-source');
+    if (_state._loading && _state._loading[source]) {
+      grid.innerHTML = '<div class="neuron-loading"></div>';
+      return;
+    }
+    if (_state._error && _state._error[source]) {
+      grid.innerHTML = '<div class="neuron-error">' + _state._error[source] + '</div>';
+      return;
+    }
     if (!items || items.length === 0) {
       grid.innerHTML = '<div class="neuron-empty">No items</div>';
       return;
@@ -573,7 +582,6 @@ function generateRuntimeRenderers(ast: NeuronAST): string {
         btn.addEventListener('click', function(e) {
           e.stopPropagation();
           var pid = this.getAttribute('data-product-id');
-          var source = grid.getAttribute('data-source');
           var product = _state[source].find(function(p) { return String(p['${idField}']) === pid; });
           if (product && _actions[action]) _actions[action](product);
         });
@@ -602,6 +610,15 @@ function generateRuntimeRenderers(ast: NeuronAST): string {
 
       parts.push(`function ${bc.rendererId}(items) {
   document.querySelectorAll('.neuron-cart-list').forEach(function(list) {
+    var stateField = list.getAttribute('data-state');
+    if (_state._loading && _state._loading[stateField]) {
+      list.innerHTML = '<div class="neuron-loading"></div>';
+      return;
+    }
+    if (_state._error && _state._error[stateField]) {
+      list.innerHTML = '<div class="neuron-error">' + _state._error[stateField] + '</div>';
+      return;
+    }
     var removeAction = list.getAttribute('data-remove-action');
     if (!items || items.length === 0) {
       list.innerHTML = '<div class="neuron-empty">${emptyMsg}</div>';
