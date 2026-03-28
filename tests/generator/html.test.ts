@@ -30,4 +30,32 @@ describe('generateHTML', () => {
     expect(html).toContain('style.css');
     expect(html).toContain('main.js');
   });
+
+  it('injects WebSocket client script in dev mode', () => {
+    const pages: PageNode[] = [{
+      type: 'PAGE', name: 'home', title: 'Home', route: '/', params: [],
+      components: [],
+    }];
+    const html = generateHTML(pages, 'Test', true);
+    expect(html).toContain('WebSocket');
+    expect(html).toContain('reload');
+  });
+
+  it('does not inject WebSocket script in production mode', () => {
+    const pages: PageNode[] = [{
+      type: 'PAGE', name: 'home', title: 'Home', route: '/', params: [],
+      components: [],
+    }];
+    const html = generateHTML(pages, 'Test', false);
+    expect(html).not.toContain('WebSocket');
+  });
+
+  it('does not inject WebSocket script by default', () => {
+    const pages: PageNode[] = [{
+      type: 'PAGE', name: 'home', title: 'Home', route: '/', params: [],
+      components: [],
+    }];
+    const html = generateHTML(pages, 'Test');
+    expect(html).not.toContain('WebSocket');
+  });
 });

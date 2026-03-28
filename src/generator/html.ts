@@ -9,8 +9,20 @@ function wrapWithShowIf(html: string, comp: ComponentNode): string {
   return `<div id="${id}" data-show-if="${comp.showIf.negate ? '!' : ''}${comp.showIf.field}">${html}</div>`;
 }
 
-export function generateHTML(pages: PageNode[], appTitle: string): string {
+export function generateHTML(pages: PageNode[], appTitle: string, devMode?: boolean): string {
   _showIfCounter = 0;
+  const devScript = devMode ? `
+  <script>
+  (function() {
+    var ws = new WebSocket('ws://' + location.host);
+    ws.onmessage = function(e) {
+      if (e.data === 'reload') location.reload();
+    };
+    ws.onclose = function() {
+      setTimeout(function() { location.reload(); }, 1000);
+    };
+  })();
+  </script>` : '';
   const pagesSections = pages.map(page => {
     const componentsHtml = page.components.map(c => {
       const html = renderComponent(c);
@@ -33,7 +45,7 @@ export function generateHTML(pages: PageNode[], appTitle: string): string {
   <div id="app">
 ${pagesSections}
   </div>
-  <script src="main.js"></script>
+  <script src="main.js"></script>${devScript}
 </body>
 </html>`;
 }

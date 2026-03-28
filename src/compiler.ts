@@ -15,6 +15,7 @@ export interface CompileInput {
   apiFiles: string[];
   themeFile: string | null;
   appTitle: string;
+  devMode?: boolean;
 }
 
 export interface CompileResult {
@@ -93,7 +94,7 @@ export function compile(input: CompileInput): CompileResult {
   errors.push(...validationErrors);
 
   // Generate outputs
-  const html = generateHTML(ast.pages, input.appTitle);
+  const html = generateHTML(ast.pages, input.appTitle, input.devMode);
   const css = generateCSS(theme);
   const js = generateJS(ast, logicFiles, theme.transition || 'none');
 
