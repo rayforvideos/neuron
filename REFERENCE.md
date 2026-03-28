@@ -502,6 +502,30 @@ dist/
 └── assets/       # Copied from project assets/
 ```
 
+## Dev Server
+
+```bash
+neuron dev              # Start dev server (port 3000)
+neuron dev --port 8080  # Custom port
+```
+
+Watches `.neuron`, `logic/*.js`, `themes/theme.json`, and `assets/` for changes. Auto-rebuilds and reloads browser via WebSocket.
+
+## Build Validation
+
+`neuron build` automatically validates:
+
+| Check | Description |
+|-------|-------------|
+| Undefined state | `data:`, `state:`, `show_if:` referencing undeclared STATE fields |
+| Undefined action | `on_click:`, `on_remove:`, inline actions referencing undeclared ACTIONs |
+| Undefined API | `call:` referencing undeclared APIs |
+| Duplicate routes | Multiple PAGEs with the same route |
+| Duplicate page names | Multiple PAGEs with the same name |
+| Invalid persist | `persist:` fields not declared in STATE |
+
+Validation errors appear in build output but do not block code generation.
+
 ## Key Constraints
 
 1. **API name = STATE field name** for auto-binding (e.g., `API products` binds to `STATE.products`)
