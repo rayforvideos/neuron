@@ -42,12 +42,14 @@ export function generateJS(ast: NeuronAST): string {
 function generateState(ast: NeuronAST): string {
   const fields = ast.states.flatMap(s => s.fields);
   const entries = fields.map(f => `  "${f.name}": ${f.defaultValue}`);
+  entries.push('  "_params": {}');
   return `const _state = {\n${entries.join(',\n')}\n};`;
 }
 
 function generateBindings(ast: NeuronAST): string {
   const fields = ast.states.flatMap(s => s.fields);
   const entries = fields.map(f => `  "${f.name}": []`);
+  entries.push('  "_params": []');
   return `const _bindings = {\n${entries.join(',\n')}\n};`;
 }
 
@@ -59,8 +61,30 @@ function generateSetState(): string {
 }
 
 function generateRouter(ast: NeuronAST): string {
-  const routeEntries = ast.pages.map(p => `  "${p.route}": "${p.name}"`);
-  const routeMap = `const _routes = {\n${routeEntries.join(',\n')}\n};`;
+  const routeEntries = ast.pages.map(p => {
+    const regexStr = p.route
+      .replace(/:[a-zA-Z_]\w*/g, '([^/]+)')
+      .replace(/\//g, '\\/');
+    const paramsArr = p.params.map(param => `'${param}'`).join(', ');
+    return `  { pattern: /^${regexStr}$/, page: '${p.name}', params: [${paramsArr}] }`;
+  });
+  const routeArray = `const _routes = [\n${routeEntries.join(',\n')}\n];`;
+
+  const matchRoute = `function _matchRoute(path) {
+  for (var i = 0; i < _routes.length; i++) {
+    var route = _routes[i];
+    var match = path.match(route.pattern);
+    if (match) {
+      var paramValues = {};
+      route.params.forEach(function(name, idx) {
+        paramValues[name] = match[idx + 1];
+      });
+      _setState('_params', paramValues);
+      return route.page;
+    }
+  }
+  return _routes[0] ? _routes[0].page : null;
+}`;
 
   const navigate = `function _navigate(route) {
   history.pushState(null, '', route);
@@ -68,23 +92,23 @@ function generateRouter(ast: NeuronAST): string {
 }`;
 
   const render = `function _render(route) {
-  const pageName = _routes[route];
-  document.querySelectorAll('[data-page]').forEach(el => {
+  var pageName = _matchRoute(route);
+  document.querySelectorAll('[data-page]').forEach(function(el) {
     el.style.display = el.getAttribute('data-page') === pageName ? '' : 'none';
   });
 }`;
 
   const initRouter = `function _initRouter() {
   document.addEventListener('click', function(e) {
-    const link = e.target.closest('[data-link]');
+    var link = e.target.closest('[data-link]');
     if (link) {
       e.preventDefault();
       _navigate(link.getAttribute('data-link') || link.getAttribute('href'));
     }
-    const actionEl = e.target.closest('[data-action]');
+    var actionEl = e.target.closest('[data-action]');
     if (actionEl) {
       e.preventDefault();
-      const name = actionEl.getAttribute('data-action');
+      var name = actionEl.getAttribute('data-action');
       if (_actions[name]) _actions[name]();
     }
   });
@@ -94,7 +118,7 @@ function generateRouter(ast: NeuronAST): string {
   _render(location.pathname);
 }`;
 
-  return [routeMap, navigate, render, initRouter].join('\n\n');
+  return [routeArray, matchRoute, navigate, render, initRouter].join('\n\n');
 }
 
 function generateActions(ast: NeuronAST): string {

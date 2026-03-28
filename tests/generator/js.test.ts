@@ -48,8 +48,8 @@ describe('generateJS', () => {
   it('generates router with all page routes', () => {
     const js = generateJS(ast);
     expect(js).toContain('function _navigate(');
-    expect(js).toContain('"/": "home"');
-    expect(js).toContain('"/cart": "cart"');
+    expect(js).toContain("page: 'home'");
+    expect(js).toContain("page: 'cart'");
     expect(js).toContain('data-link');
   });
 
@@ -152,6 +152,51 @@ describe('generateJS', () => {
       const js = generateJS(navAst);
       expect(js).toContain("'go-home'");
       expect(js).toContain("_navigate('/')");
+    });
+  });
+
+  describe('dynamic routing', () => {
+    it('generates pattern-based router for dynamic routes', () => {
+      const dynAst: NeuronAST = {
+        states: [{ type: 'STATE', fields: [] }],
+        actions: [],
+        apis: [],
+        pages: [
+          { type: 'PAGE', name: 'home', title: 'Home', route: '/', params: [], components: [] },
+          { type: 'PAGE', name: 'detail', title: 'Detail', route: '/item/:id', params: ['id'], components: [] },
+        ],
+      };
+      const js = generateJS(dynAst);
+      expect(js).toContain('const _routes = [');
+      expect(js).toContain("params: ['id']");
+      expect(js).toContain('_params');
+    });
+
+    it('generates static-only router when no dynamic routes', () => {
+      const staticAst: NeuronAST = {
+        states: [{ type: 'STATE', fields: [] }],
+        actions: [],
+        apis: [],
+        pages: [
+          { type: 'PAGE', name: 'home', title: 'Home', route: '/', params: [], components: [] },
+          { type: 'PAGE', name: 'about', title: 'About', route: '/about', params: [], components: [] },
+        ],
+      };
+      const js = generateJS(staticAst);
+      expect(js).toContain('const _routes = [');
+    });
+
+    it('generates multi-param route matching', () => {
+      const multiAst: NeuronAST = {
+        states: [{ type: 'STATE', fields: [] }],
+        actions: [],
+        apis: [],
+        pages: [
+          { type: 'PAGE', name: 'edit', title: 'Edit', route: '/cat/:catId/item/:itemId', params: ['catId', 'itemId'], components: [] },
+        ],
+      };
+      const js = generateJS(multiAst);
+      expect(js).toContain("params: ['catId', 'itemId']");
     });
   });
 

@@ -145,8 +145,8 @@ ACTION search-products
     expect(result.js).toContain('/api/products');
     expect(result.js).toContain('/api/orders');
     expect(result.js).toContain('_navigate');
-    expect(result.js).toContain('"/": "home"');
-    expect(result.js).toContain('"/cart": "cart"');
-    expect(result.js).toContain('"/checkout": "checkout"');
+    expect(result.js).toContain("page: 'home'");
+    expect(result.js).toContain("page: 'cart'");
+    expect(result.js).toContain("page: 'checkout'");
   });
 });

@@ -129,6 +129,13 @@ function parsePage(tokens: Token[], start: number): [PageNode, number] {
     params: [],
     components: [],
   };
+
+  // Extract dynamic route params
+  const paramMatches = keyword.route.matchAll(/:(\w+)/g);
+  for (const match of paramMatches) {
+    node.params.push(match[1]);
+  }
+
   let i = start + 1;
 
   while (i < tokens.length) {

@@ -68,6 +68,24 @@ describe('parse', () => {
     expect(form.properties.find(p => p.key === 'submit')?.value).toBe('"결제하기" -> pay');
   });
 
+  describe('dynamic route params', () => {
+    it('extracts single param from route', () => {
+      const ast = parse(`PAGE detail "Detail" /item/:id\n`);
+      expect(ast.pages[0].params).toEqual(['id']);
+      expect(ast.pages[0].route).toBe('/item/:id');
+    });
+
+    it('extracts multiple params from route', () => {
+      const ast = parse(`PAGE edit "Edit" /category/:catId/item/:itemId\n`);
+      expect(ast.pages[0].params).toEqual(['catId', 'itemId']);
+    });
+
+    it('returns empty params for static route', () => {
+      const ast = parse(`PAGE home "Home" /\n`);
+      expect(ast.pages[0].params).toEqual([]);
+    });
+  });
+
   it('parses full app.neuron with mixed sections', () => {
     const input = `STATE\n  cart: []\n  products: []\n\n---\n\nACTION add-to-cart\n  append: product -> cart\n\nACTION remove-from-cart\n  remove: cart where id matches`;
     const ast = parse(input);
