@@ -305,3 +305,78 @@ export function toggleTodo(state, id) {
     expect(result.css).toContain('input:invalid');
   });
 });
+
+describe('end-to-end: app with Phase 2 runtime features', () => {
+  it('compiles an app with persistence, transitions, responsive, and loading/error', () => {
+    writeFileSync(join(TMP, 'app.neuron'), `STATE persist: todos
+  todos: []
+  query: ""
+
+---
+
+ACTION search
+  call: todos
+  query: query
+  target: todos`);
+
+    mkdirSync(join(TMP, 'pages'), { recursive: true });
+    writeFileSync(join(TMP, 'pages', 'home.neuron'), `PAGE home "Home" /
+
+  header
+    title: "My App"
+
+  product-grid
+    data: todos
+    cols: 2
+
+  footer
+    text: "Built with Neuron"`);
+
+    mkdirSync(join(TMP, 'apis'), { recursive: true });
+    writeFileSync(join(TMP, 'apis', 'todos.neuron'), `API todos
+  GET /api/todos
+  on_load: true
+  returns: Todo[]`);
+
+    mkdirSync(join(TMP, 'themes'), { recursive: true });
+    writeFileSync(join(TMP, 'themes', 'theme.json'), JSON.stringify({
+      colors: { primary: '#2E86AB', secondary: '#A23B72', danger: '#E84855', bg: '#FFFFFF', text: '#1A1A2E', border: '#E0E0E0' },
+      font: { family: 'Inter', size: { sm: 14, md: 16, lg: 20, xl: 28 } },
+      radius: 8, shadow: '0 2px 8px rgba(0,0,0,0.1)', spacing: { sm: 8, md: 16, lg: 24, xl: 48 },
+      transition: 'fade',
+    }));
+
+    const result = compile({
+      appFile: join(TMP, 'app.neuron'),
+      pageFiles: [join(TMP, 'pages', 'home.neuron')],
+      apiFiles: [join(TMP, 'apis', 'todos.neuron')],
+      themeFile: join(TMP, 'themes', 'theme.json'),
+      appTitle: 'Phase 2 App',
+    });
+
+    expect(result.errors).toEqual([]);
+
+    // Persistence
+    expect(result.js).toContain('_persistFields');
+    expect(result.js).toContain("'todos'");
+    expect(result.js).toContain('localStorage');
+    expect(result.js).toContain('_initPersist');
+
+    // Transitions
+    expect(result.css).toContain('neuron-page-active');
+    expect(result.css).toContain('opacity');
+    expect(result.js).toContain('neuron-page-active');
+
+    // Responsive
+    expect(result.css).toContain('@media (max-width: 768px)');
+
+    // Loading/Error
+    expect(result.js).toContain('"_loading": {}');
+    expect(result.js).toContain('"_error": {}');
+    expect(result.js).toContain('todos: true');
+    expect(result.js).toContain('neuron-loading');
+    expect(result.js).toContain('neuron-error');
+    expect(result.css).toContain('.neuron-loading');
+    expect(result.css).toContain('neuron-spin');
+  });
+});
