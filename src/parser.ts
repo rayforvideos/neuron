@@ -171,8 +171,18 @@ function parseComponent(tokens: Token[], start: number): [ComponentNode, number]
     if (cur.indent <= baseIndent || cur.type === 'KEYWORD' || cur.type === 'SEPARATOR') break;
 
     if (cur.type === 'PROPERTY') {
-      node.properties.push({ key: cur.key, value: cur.value });
-      i++;
+      if (cur.key === 'show_if') {
+        const raw = cur.value.trim();
+        if (raw.startsWith('!')) {
+          node.showIf = { field: raw.slice(1).trim(), negate: true };
+        } else {
+          node.showIf = { field: raw, negate: false };
+        }
+        i++;
+      } else {
+        node.properties.push({ key: cur.key, value: cur.value });
+        i++;
+      }
     } else if (cur.type === 'LIST_ITEM') {
       node.properties.push({ key: 'fields_items', value: cur.value });
       i++;

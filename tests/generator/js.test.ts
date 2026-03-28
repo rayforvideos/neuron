@@ -200,6 +200,36 @@ describe('generateJS', () => {
     });
   });
 
+  describe('show_if rendering', () => {
+    it('generates show_if bindings for components', () => {
+      const showIfAst: NeuronAST = {
+        states: [{ type: 'STATE', fields: [{ name: 'user', defaultValue: 'null' }] }],
+        actions: [],
+        apis: [],
+        pages: [{
+          type: 'PAGE', name: 'home', title: 'Home', route: '/', params: [],
+          components: [{
+            type: 'COMPONENT', componentType: 'button',
+            inlineLabel: 'Logout', inlineAction: 'logout',
+            properties: [],
+            children: [],
+            showIf: { field: 'user', negate: false },
+          }, {
+            type: 'COMPONENT', componentType: 'button',
+            inlineLabel: 'Login', inlineAction: '/login',
+            properties: [],
+            children: [],
+            showIf: { field: 'user', negate: true },
+          }],
+        }],
+      };
+      const js = generateJS(showIfAst);
+      expect(js).toContain("_bindings['user']");
+      expect(js).toContain('display');
+      expect(js).toContain('_initShowIf');
+    });
+  });
+
   describe('runtime renderers', () => {
     const astWithComponents: NeuronAST = {
       states: [{ type: 'STATE', fields: [

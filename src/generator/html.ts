@@ -1,9 +1,21 @@
-import type { PageNode } from '../ast';
+import type { PageNode, ComponentNode } from '../ast';
 import { renderComponent } from '../components/registry';
 
+let _showIfCounter = 0;
+
+function wrapWithShowIf(html: string, comp: ComponentNode): string {
+  if (!comp.showIf) return html;
+  const id = `neuron-sf-${_showIfCounter++}`;
+  return `<div id="${id}" data-show-if="${comp.showIf.negate ? '!' : ''}${comp.showIf.field}">${html}</div>`;
+}
+
 export function generateHTML(pages: PageNode[], appTitle: string): string {
+  _showIfCounter = 0;
   const pagesSections = pages.map(page => {
-    const componentsHtml = page.components.map(c => renderComponent(c)).join('\n    ');
+    const componentsHtml = page.components.map(c => {
+      const html = renderComponent(c);
+      return wrapWithShowIf(html, c);
+    }).join('\n    ');
     return `  <div class="neuron-page" data-page="${page.name}" data-route="${page.route}" style="display:none">
     ${componentsHtml}
   </div>`;

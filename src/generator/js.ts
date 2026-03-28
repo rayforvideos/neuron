@@ -23,6 +23,10 @@ export function generateJS(ast: NeuronAST): string {
   // 6. Form handling
   lines.push(generateFormHandling());
 
+  // 6.5 Show-if bindings
+  const showIfCode = generateShowIfBindings(ast);
+  if (showIfCode) lines.push(showIfCode);
+
   // 7. Auto-load
   lines.push(generateAutoLoad(ast));
 
@@ -34,7 +38,7 @@ export function generateJS(ast: NeuronAST): string {
   lines.push(generateInitBindings(ast));
 
   // 10. DOMContentLoaded init
-  lines.push(generateInit());
+  lines.push(generateInit(ast));
 
   return lines.join('\n\n');
 }
@@ -550,9 +554,67 @@ function generateInitBindings(ast: NeuronAST): string {
   return `function _initBindings() {\n${registrations.join('\n')}\n}`;
 }
 
-function generateInit(): string {
+interface ShowIfComponent {
+  elementId: string;
+  stateField: string;
+  negate: boolean;
+}
+
+function collectShowIfComponents(ast: NeuronAST): ShowIfComponent[] {
+  const results: ShowIfComponent[] = [];
+  let counter = 0;
+
+  function walk(components: ComponentNode[]) {
+    for (const comp of components) {
+      if (comp.showIf) {
+        results.push({
+          elementId: `neuron-sf-${counter}`,
+          stateField: comp.showIf.field,
+          negate: comp.showIf.negate,
+        });
+      }
+      counter++;
+      walk(comp.children);
+    }
+  }
+
+  for (const page of ast.pages) {
+    walk(page.components);
+  }
+  return results;
+}
+
+function generateShowIfBindings(ast: NeuronAST): string {
+  const components = collectShowIfComponents(ast);
+  if (components.length === 0) return '';
+
+  const lines: string[] = ['function _initShowIf() {'];
+  for (const comp of components) {
+    const condition = comp.negate
+      ? `!val || (Array.isArray(val) && val.length === 0)`
+      : `val && (!Array.isArray(val) || val.length > 0)`;
+    const initCondition = comp.negate
+      ? `!initVal || (Array.isArray(initVal) && initVal.length === 0)`
+      : `initVal && (!Array.isArray(initVal) || initVal.length > 0)`;
+    lines.push(`  (function() {`);
+    lines.push(`    var el = document.getElementById('${comp.elementId}');`);
+    lines.push(`    if (!el) return;`);
+    lines.push(`    _bindings['${comp.stateField}'].push(function(val) {`);
+    lines.push(`      el.style.display = ${condition} ? '' : 'none';`);
+    lines.push(`    });`);
+    lines.push(`    var initVal = _state['${comp.stateField}'];`);
+    lines.push(`    el.style.display = ${initCondition} ? '' : 'none';`);
+    lines.push(`  })();`);
+  }
+  lines.push('}');
+  return lines.join('\n');
+}
+
+function generateInit(ast: NeuronAST): string {
+  const hasShowIf = collectShowIfComponents(ast).length > 0;
+  const showIfCall = hasShowIf ? '\n  _initShowIf();' : '';
   return `document.addEventListener('DOMContentLoaded', function() {
-  _initBindings();
+  _initBindings();${showIfCall}
   _initRouter();
   _autoLoad();
 });`;

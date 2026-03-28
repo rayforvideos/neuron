@@ -86,6 +86,38 @@ describe('parse', () => {
     });
   });
 
+  describe('show_if parsing', () => {
+    it('parses show_if property on component', () => {
+      const ast = parse(`PAGE home "Home" /
+
+  button "Login" -> /login
+    show_if: !user
+`);
+      const btn = ast.pages[0].components[0];
+      expect(btn.showIf).toEqual({ field: 'user', negate: true });
+    });
+
+    it('parses show_if without negation', () => {
+      const ast = parse(`PAGE home "Home" /
+
+  button "Logout" -> logout
+    show_if: user
+`);
+      const btn = ast.pages[0].components[0];
+      expect(btn.showIf).toEqual({ field: 'user', negate: false });
+    });
+
+    it('component without show_if has undefined showIf', () => {
+      const ast = parse(`PAGE home "Home" /
+
+  text
+    content: "Hello"
+`);
+      const txt = ast.pages[0].components[0];
+      expect(txt.showIf).toBeUndefined();
+    });
+  });
+
   it('parses full app.neuron with mixed sections', () => {
     const input = `STATE\n  cart: []\n  products: []\n\n---\n\nACTION add-to-cart\n  append: product -> cart\n\nACTION remove-from-cart\n  remove: cart where id matches`;
     const ast = parse(input);
