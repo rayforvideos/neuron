@@ -126,6 +126,7 @@ function parsePage(tokens: Token[], start: number): [PageNode, number] {
     name: keyword.name,
     title: keyword.title,
     route: keyword.route,
+    params: [],
     components: [],
   };
   let i = start + 1;

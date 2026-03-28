@@ -6,14 +6,14 @@ describe('generateHTML', () => {
   it('generates full HTML document with pages', () => {
     const pages: PageNode[] = [
       {
-        type: 'PAGE', name: 'home', title: '홈', route: '/',
+        type: 'PAGE', name: 'home', title: '홈', route: '/', params: [],
         components: [
           { type: 'COMPONENT', componentType: 'header', properties: [{ key: 'title', value: '"My Shop"' }], children: [] },
           { type: 'COMPONENT', componentType: 'footer', properties: [{ key: 'text', value: '"© 2026"' }], children: [] },
         ],
       },
       {
-        type: 'PAGE', name: 'cart', title: '장바구니', route: '/cart',
+        type: 'PAGE', name: 'cart', title: '장바구니', route: '/cart', params: [],
         components: [
           { type: 'COMPONENT', componentType: 'header', properties: [{ key: 'title', value: '"My Shop"' }], children: [] },
         ],

@@ -26,8 +26,8 @@ describe('generateJS', () => {
       { type: 'API', name: 'orders', method: 'POST', endpoint: '/api/orders', options: { body: 'cart', returns: 'Order' } },
     ],
     pages: [
-      { type: 'PAGE', name: 'home', title: '홈', route: '/', components: [] },
-      { type: 'PAGE', name: 'cart', title: '장바구니', route: '/cart', components: [] },
+      { type: 'PAGE', name: 'home', title: '홈', route: '/', params: [], components: [] },
+      { type: 'PAGE', name: 'cart', title: '장바구니', route: '/cart', params: [], components: [] },
     ],
   };
 
@@ -96,7 +96,7 @@ describe('generateJS', () => {
         { type: 'API', name: 'products', method: 'GET', endpoint: '/api/products', options: { on_load: 'true', returns: 'Product[]' } },
       ],
       pages: [{
-        type: 'PAGE', name: 'home', title: '홈', route: '/',
+        type: 'PAGE', name: 'home', title: '홈', route: '/', params: [],
         components: [{
           type: 'COMPONENT', componentType: 'product-grid',
           properties: [
@@ -111,7 +111,7 @@ describe('generateJS', () => {
           children: [],
         }],
       }, {
-        type: 'PAGE', name: 'cart', title: '장바구니', route: '/cart',
+        type: 'PAGE', name: 'cart', title: '장바구니', route: '/cart', params: [],
         components: [
           {
             type: 'COMPONENT', componentType: 'cart-list',
@@ -186,7 +186,7 @@ describe('generateJS', () => {
         actions: [],
         apis: [],
         pages: [{
-          type: 'PAGE', name: 'home', title: 'Home', route: '/',
+          type: 'PAGE', name: 'home', title: 'Home', route: '/', params: [],
           components: [{
             type: 'COMPONENT', componentType: 'product-grid',
             properties: [{ key: 'data', value: 'items' }],

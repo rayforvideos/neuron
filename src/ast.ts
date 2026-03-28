@@ -34,6 +34,13 @@ export interface ComponentProperty {
   value: string;
 }
 
+export interface FormFieldValidation {
+  type?: string;
+  required?: boolean;
+  min?: number;
+  max?: number;
+}
+
 export interface ComponentNode {
   type: 'COMPONENT';
   componentType: string;  // "header", "hero", "button", etc.
@@ -41,6 +48,7 @@ export interface ComponentNode {
   inlineAction?: string;  // -> /path or -> action
   properties: ComponentProperty[];
   children: ComponentNode[];
+  showIf?: { field: string; negate: boolean };
 }
 
 export interface PageNode {
@@ -48,6 +56,7 @@ export interface PageNode {
   name: string;       // "home"
   title: string;      // "홈"
   route: string;      // "/"
+  params: string[];
   components: ComponentNode[];
 }
 
