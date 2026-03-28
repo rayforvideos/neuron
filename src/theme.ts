@@ -1,4 +1,5 @@
 import { readFileSync } from 'fs';
+import { PRESETS } from './theme-presets';
 
 export interface Theme {
   colors: Record<string, string>;
@@ -28,11 +29,16 @@ export const DEFAULT_THEME: Theme = {
   transition: 'none',
 };
 
-export function loadTheme(path: string | null): Theme {
-  if (!path) return { ...DEFAULT_THEME };
-  const raw = readFileSync(path, 'utf-8');
-  const parsed = JSON.parse(raw);
-  return { ...DEFAULT_THEME, ...parsed, transition: parsed.transition || 'none' };
+export function loadTheme(path: string | null, presetName?: string): Theme {
+  if (path) {
+    const raw = readFileSync(path, 'utf-8');
+    const parsed = JSON.parse(raw);
+    return { ...DEFAULT_THEME, ...parsed, transition: parsed.transition || 'none' };
+  }
+  if (presetName && PRESETS[presetName]) {
+    return { ...PRESETS[presetName] };
+  }
+  return { ...DEFAULT_THEME };
 }
 
 export function themeToCSS(theme: Theme): string {
