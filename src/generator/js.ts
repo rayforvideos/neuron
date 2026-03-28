@@ -95,6 +95,10 @@ function generateState(ast: NeuronAST): string {
   const fields = ast.states.flatMap(s => s.fields);
   const entries = fields.map(f => `  "${f.name}": ${f.defaultValue}`);
   entries.push('  "_params": {}');
+  if (ast.apis.length > 0) {
+    entries.push('  "_loading": {}');
+    entries.push('  "_error": {}');
+  }
   return `const _state = {\n${entries.join(',\n')}\n};`;
 }
 
@@ -102,6 +106,10 @@ function generateBindings(ast: NeuronAST): string {
   const fields = ast.states.flatMap(s => s.fields);
   const entries = fields.map(f => `  "${f.name}": []`);
   entries.push('  "_params": []');
+  if (ast.apis.length > 0) {
+    entries.push('  "_loading": []');
+    entries.push('  "_error": []');
+  }
   return `const _bindings = {\n${entries.join(',\n')}\n};`;
 }
 

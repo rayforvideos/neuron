@@ -341,6 +341,32 @@ describe('generateJS', () => {
     });
   });
 
+  describe('loading and error state', () => {
+    it('generates _loading and _error in state when APIs exist', () => {
+      const apiAst: NeuronAST = {
+        states: [{ type: 'STATE', fields: [{ name: 'products', defaultValue: '[]' }], persist: [] }],
+        actions: [],
+        apis: [{ type: 'API', name: 'products', method: 'GET', endpoint: '/api/products', options: { on_load: 'true' } }],
+        pages: [{ type: 'PAGE', name: 'home', title: 'Home', route: '/', params: [], components: [] }],
+      };
+      const js = generateJS(apiAst);
+      expect(js).toContain('"_loading": {}');
+      expect(js).toContain('"_error": {}');
+    });
+
+    it('does not generate _loading/_error when no APIs', () => {
+      const noApiAst: NeuronAST = {
+        states: [{ type: 'STATE', fields: [{ name: 'count', defaultValue: '0' }], persist: [] }],
+        actions: [],
+        apis: [],
+        pages: [{ type: 'PAGE', name: 'home', title: 'Home', route: '/', params: [], components: [] }],
+      };
+      const js = generateJS(noApiAst);
+      expect(js).not.toContain('"_loading"');
+      expect(js).not.toContain('"_error"');
+    });
+  });
+
   describe('runtime renderers', () => {
     const astWithComponents: NeuronAST = {
       states: [{ type: 'STATE', fields: [

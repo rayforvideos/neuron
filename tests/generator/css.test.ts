@@ -75,6 +75,13 @@ describe('generateCSS', () => {
     expect(css).not.toContain('neuron-page-active');
   });
 
+  it('includes loading spinner and error styles', () => {
+    const css = generateCSS(DEFAULT_THEME);
+    expect(css).toContain('.neuron-loading');
+    expect(css).toContain('neuron-spin');
+    expect(css).toContain('.neuron-error');
+  });
+
   it('includes responsive media queries', () => {
     const css = generateCSS(DEFAULT_THEME);
     expect(css).toContain('@media (max-width: 768px)');

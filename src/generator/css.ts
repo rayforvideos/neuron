@@ -234,6 +234,33 @@ input:valid:not(:placeholder-shown) {
   border-color: var(--color-primary);
 }
 
+.neuron-loading {
+  text-align: center;
+  padding: var(--spacing-xl);
+}
+.neuron-loading::after {
+  content: '';
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: neuron-spin 0.6s linear infinite;
+}
+@keyframes neuron-spin {
+  to { transform: rotate(360deg); }
+}
+
+.neuron-error {
+  padding: var(--spacing-md);
+  background: #fef2f2;
+  color: var(--color-danger);
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius);
+  margin: var(--spacing-md) 0;
+}
+
 @media (max-width: 768px) {
   .neuron-product-grid,
   .neuron-grid {
