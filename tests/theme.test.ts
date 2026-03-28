@@ -18,6 +18,18 @@ describe('loadTheme', () => {
   });
 });
 
+describe('theme transition', () => {
+  it('loads transition from theme file', () => {
+    const theme = loadTheme(null);
+    expect(theme.transition).toBe('none');
+  });
+
+  it('defaults to none when transition not specified', () => {
+    const theme = loadTheme(null);
+    expect(theme.transition).toBe('none');
+  });
+});
+
 describe('themeToCSS', () => {
   it('generates CSS custom properties', () => {
     const theme = loadTheme(null);

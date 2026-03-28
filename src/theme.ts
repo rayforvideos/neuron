@@ -6,6 +6,7 @@ export interface Theme {
   radius: number;
   shadow: string;
   spacing: Record<string, number>;
+  transition: 'fade' | 'slide' | 'none';
 }
 
 export const DEFAULT_THEME: Theme = {
@@ -24,12 +25,14 @@ export const DEFAULT_THEME: Theme = {
   radius: 8,
   shadow: '0 2px 8px rgba(0,0,0,0.1)',
   spacing: { sm: 8, md: 16, lg: 24, xl: 48 },
+  transition: 'none',
 };
 
 export function loadTheme(path: string | null): Theme {
   if (!path) return { ...DEFAULT_THEME };
   const raw = readFileSync(path, 'utf-8');
-  return JSON.parse(raw) as Theme;
+  const parsed = JSON.parse(raw);
+  return { ...DEFAULT_THEME, ...parsed, transition: parsed.transition || 'none' };
 }
 
 export function themeToCSS(theme: Theme): string {
