@@ -106,4 +106,33 @@ ACTION add-todo
 
     rmSync(tmpDir, { recursive: true, force: true });
   });
+
+  it('reports validation errors for undefined state references', () => {
+    const tmpDir = join(__dirname, '.tmp-compiler-validate');
+    mkdirSync(tmpDir, { recursive: true });
+    mkdirSync(join(tmpDir, 'pages'), { recursive: true });
+
+    writeFileSync(join(tmpDir, 'app.neuron'), `STATE
+  items: []`);
+
+    writeFileSync(join(tmpDir, 'pages', 'home.neuron'), `PAGE home "Home" /
+
+  product-grid
+    data: products
+    on_click: nonexistent`);
+
+    const result = compile({
+      appFile: join(tmpDir, 'app.neuron'),
+      pageFiles: [join(tmpDir, 'pages', 'home.neuron')],
+      apiFiles: [],
+      themeFile: null,
+      appTitle: 'Test',
+    });
+
+    expect(result.errors.length).toBeGreaterThanOrEqual(2);
+    expect(result.errors.some(e => e.includes('products'))).toBe(true);
+    expect(result.errors.some(e => e.includes('nonexistent'))).toBe(true);
+
+    rmSync(tmpDir, { recursive: true, force: true });
+  });
 });

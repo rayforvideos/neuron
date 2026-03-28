@@ -7,6 +7,7 @@ import { generateCSS } from './generator/css';
 import { generateJS } from './generator/js';
 import { loadTheme } from './theme';
 import { NeuronError, formatError } from './errors';
+import { validate } from './validator';
 
 export interface CompileInput {
   appFile: string;
@@ -86,6 +87,10 @@ export function compile(input: CompileInput): CompileResult {
       }
     }
   }
+
+  // Validate AST
+  const validationErrors = validate(ast);
+  errors.push(...validationErrors);
 
   // Generate outputs
   const html = generateHTML(ast.pages, input.appTitle);
