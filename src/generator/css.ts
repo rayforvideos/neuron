@@ -332,12 +332,15 @@ const SLIDE_TRANSITION = `
 }
 `;
 
-export function generateCSS(theme: Theme): string {
+export function generateCSS(theme: Theme, customCSS?: string): string {
   let css = themeToCSS(theme) + '\n' + BASE_STYLES;
   if (theme.transition === 'fade') {
     css += '\n' + FADE_TRANSITION;
   } else if (theme.transition === 'slide') {
     css += '\n' + SLIDE_TRANSITION;
+  }
+  if (customCSS) {
+    css += '\n/* Custom Components */\n' + customCSS;
   }
   return css;
 }

@@ -8,6 +8,7 @@ import { generateJS } from './generator/js';
 import { loadTheme } from './theme';
 import { NeuronError, formatError } from './errors';
 import { validate } from './validator';
+import { registerCustomComponent, clearCustomComponents, KNOWN_COMPONENTS } from './components/registry';
 
 export interface CompileInput {
   appFile: string;
@@ -75,6 +76,28 @@ export function compile(input: CompileInput): CompileResult {
     } catch {}
   }
   const theme = loadTheme(input.themeFile, presetName);
+  // Scan components/ directory
+  clearCustomComponents();
+  let customCSS = '';
+  const componentsDir = join(projectDir, 'components');
+  if (existsSync(componentsDir)) {
+    const htmlFiles = readdirSync(componentsDir).filter(f => f.endsWith('.html'));
+    for (const file of htmlFiles) {
+      const name = file.replace('.html', '');
+      if (KNOWN_COMPONENTS.includes(name)) {
+        errors.push(formatError(new NeuronError('component_name_conflict', name, {})));
+        continue;
+      }
+      const template = readFileSync(join(componentsDir, file), 'utf-8');
+      registerCustomComponent(name, template);
+
+      const cssFile = join(componentsDir, name + '.css');
+      if (existsSync(cssFile)) {
+        customCSS += readFileSync(cssFile, 'utf-8') + '\n';
+      }
+    }
+  }
+
   const logicDir = join(projectDir, 'logic');
   if (existsSync(logicDir)) {
     const jsFiles = readdirSync(logicDir).filter(f => f.endsWith('.js'));
@@ -103,7 +126,7 @@ export function compile(input: CompileInput): CompileResult {
 
   // Generate outputs
   const html = generateHTML(ast.pages, input.appTitle, input.devMode);
-  const css = generateCSS(theme);
+  const css = generateCSS(theme, customCSS || undefined);
   const js = generateJS(ast, logicFiles, theme.transition || 'none');
 
   return { html, css, js, errors };

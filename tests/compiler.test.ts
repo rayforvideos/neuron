@@ -134,6 +134,66 @@ ACTION add-todo
     rmSync(tmpDir, { recursive: true, force: true });
   });
 
+  it('scans components/ directory and renders custom components', () => {
+    const tmpDir = join(__dirname, '.tmp-compiler-custom');
+    mkdirSync(tmpDir, { recursive: true });
+    mkdirSync(join(tmpDir, 'pages'), { recursive: true });
+    mkdirSync(join(tmpDir, 'components'), { recursive: true });
+
+    writeFileSync(join(tmpDir, 'app.neuron'), `STATE
+  items: []`);
+    writeFileSync(join(tmpDir, 'pages', 'home.neuron'), `PAGE home "Home" /
+
+  rating
+    label: "Score"
+    value: "4.5"`);
+    writeFileSync(join(tmpDir, 'components', 'rating.html'), `<div class="rating">{{label}} ★ {{value}}</div>`);
+    writeFileSync(join(tmpDir, 'components', 'rating.css'), `.rating { color: gold; }`);
+
+    const result = compile({
+      appFile: join(tmpDir, 'app.neuron'),
+      pageFiles: [join(tmpDir, 'pages', 'home.neuron')],
+      apiFiles: [],
+      themeFile: null,
+      appTitle: 'Test',
+    });
+
+    expect(result.errors).toEqual([]);
+    expect(result.html).toContain('Score');
+    expect(result.html).toContain('4.5');
+    expect(result.html).toContain('rating');
+    expect(result.css).toContain('.rating { color: gold; }');
+
+    rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  it('reports error when custom component conflicts with builtin', () => {
+    const tmpDir = join(__dirname, '.tmp-compiler-conflict');
+    mkdirSync(tmpDir, { recursive: true });
+    mkdirSync(join(tmpDir, 'pages'), { recursive: true });
+    mkdirSync(join(tmpDir, 'components'), { recursive: true });
+
+    writeFileSync(join(tmpDir, 'app.neuron'), `STATE
+  items: []`);
+    writeFileSync(join(tmpDir, 'pages', 'home.neuron'), `PAGE home "Home" /
+
+  text
+    content: "Hello"`);
+    writeFileSync(join(tmpDir, 'components', 'header.html'), `<header>{{title}}</header>`);
+
+    const result = compile({
+      appFile: join(tmpDir, 'app.neuron'),
+      pageFiles: [join(tmpDir, 'pages', 'home.neuron')],
+      apiFiles: [],
+      themeFile: null,
+      appTitle: 'Test',
+    });
+
+    expect(result.errors.some(e => e.includes('header') && e.includes('충돌'))).toBe(true);
+
+    rmSync(tmpDir, { recursive: true, force: true });
+  });
+
   it('reports validation errors for undefined state references', () => {
     const tmpDir = join(__dirname, '.tmp-compiler-validate');
     mkdirSync(tmpDir, { recursive: true });

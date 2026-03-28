@@ -82,6 +82,17 @@ describe('generateCSS', () => {
     expect(css).toContain('.neuron-error');
   });
 
+  it('includes custom component CSS', () => {
+    const customCSS = '.rating { color: gold; }';
+    const css = generateCSS(DEFAULT_THEME, customCSS);
+    expect(css).toContain('.rating { color: gold; }');
+  });
+
+  it('works without custom CSS', () => {
+    const css = generateCSS(DEFAULT_THEME);
+    expect(css).toContain(':root');
+  });
+
   it('includes responsive media queries', () => {
     const css = generateCSS(DEFAULT_THEME);
     expect(css).toContain('@media (max-width: 768px)');
